@@ -1,2 +1,11 @@
+# 테마 설정
 theme = Monokai Pro
 background-opacity = 0.95
+
+# Pane (분할 창) 이동 설정
+keybind = shift+command+bracket_left=goto_split:previous
+keybind = shift+command+bracket_right=goto_split:next
+
+# Tab (탭) 이동 설정
+keybind = command+bracket_left=previous_tab
+keybind = command+bracket_right=next_tab
