@@ -1,6 +1,12 @@
 # 테마 설정
 theme = Monokai Pro
-background-opacity = 0.95
+background-opacity = 0.85
+background-blur-radius = 10
+
+# fonts 
+font-family = "Victor Mono Medium"
+font-size = 16
+window-inherit-font-size = true
 
 # Pane (분할 창) 이동 설정
 keybind = shift+command+bracket_left=goto_split:previous
@@ -9,3 +15,6 @@ keybind = shift+command+bracket_right=goto_split:next
 # Tab (탭) 이동 설정
 keybind = command+bracket_left=previous_tab
 keybind = command+bracket_right=next_tab
+
+# quick termnial
+keybind = global:cmd+grave_accent=toggle_quick_terminal
