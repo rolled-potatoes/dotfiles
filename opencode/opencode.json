@@ -16,7 +16,7 @@
       "enabled": true
     }
   },
-  "plugin": ["opencode-openai-codex-auth"],
+  "plugin": ["opencode-openai-codex-auth", "@rolled-potatoes/opencode-mermaid"],
   "provider": {
     "openai": {
       "name": "OpenAI",
