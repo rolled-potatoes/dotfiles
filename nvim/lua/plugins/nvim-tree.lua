@@ -7,6 +7,11 @@
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
 vim.opt.termguicolors = true
+vim.cmd([[
+  highlight NvimTreeNormal guibg=NONE ctermbg=NONE
+  highlight NvimTreeNormalNC guibg=NONE ctermbg=NONE
+  highlight NvimTreeEndOfBuffer guibg=NONE ctermbg=NONE
+]])
 
 return {
 	"nvim-tree/nvim-tree.lua",
