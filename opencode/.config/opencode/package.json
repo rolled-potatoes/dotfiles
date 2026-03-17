@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@opencode-ai/plugin": "1.2.27",
+    "@rolled-potatoes/opencode-mermaid": "^0.2.0"
+  }
+}

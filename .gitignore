@@ -1,2 +1,14 @@
 .DS_Store
 automatic_backups
+
+# opencode 런타임 생성 파일 (git 불필요)
+opencode/.config/opencode/node_modules/
+opencode/.config/opencode/bun.lock
+opencode/.config/opencode/package-lock.json
+opencode/.config/opencode/.gitignore
+opencode/.config/opencode/oh-my-opencode.json
+opencode/.config/opencode/skills-lock.json
+opencode/.config/opencode/plugins/
+
+# agents 런타임 생성 파일
+agents/.agents/.skill-lock.json
