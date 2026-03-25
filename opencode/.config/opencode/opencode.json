@@ -32,7 +32,12 @@
       "description": "트랜디한 자료를 기반으로 주어진 작업을 수행"
     },
     "explore": {
-      "model": "github-copilot/claude-haiku-4.5"
+      "model": "github-copilot/claude-haiku-4.5",
+       "tools": {
+         "write": false,
+         "edit": false,
+         "bash": true
+      }
     }
   }
 }
