@@ -50,10 +50,23 @@ return {
 			end
 
 			for _, server_name in ipairs(servers) do
-				vim.lsp.config(server_name, {
-					on_attach = on_attach,
-					capabilities = capabilities,
-				})
+				if server_name == "eslint" then
+					vim.lsp.config("eslint", {
+						on_attach = on_attach,
+						capabilities = capabilities,
+						settings = {
+							-- monorepo(turborepo 등) 환경에서 각 패키지의 package.json 위치를
+							-- 기준으로 working directory를 자동 결정.
+							-- 루트에 eslint가 없어도 각 패키지의 eslint config/node_modules를 탐색함.
+							workingDirectories = { mode = "auto" },
+						},
+					})
+				else
+					vim.lsp.config(server_name, {
+						on_attach = on_attach,
+						capabilities = capabilities,
+					})
+				end
 			end
 		end,
 
