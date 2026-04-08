@@ -1,17 +1,26 @@
 -- lua/plugins/lsp.lua
 return {
-	-- 1. LSP 핵심 설정 (lspconfig)
+	-- 1. Mason 설정 (언어 서버 설치 관리자) - 별도 스펙으로 분리하여 독립적으로 로드
+	{
+		"mason-org/mason.nvim",
+		lazy = false, -- Mason UI는 즉시 사용 가능해야 함
+		opts = {},
+	},
+
+	-- 2. LSP 핵심 설정 (lspconfig)
 	{
 		"neovim/nvim-lspconfig",
-		-- 플러그인이 로드될 때 실행할 설정 함수
+		-- 파일을 열 때만 LSP를 로드 (시작 시 즉시 로드 방지)
+		event = { "BufReadPre", "BufNewFile" },
 		config = function()
 			-- === 필수 모듈 로드 ===
-			local lspconfig = require("lspconfig")
 			local mason_lspconfig = require("mason-lspconfig")
 			local cmp_nvim_lsp = require("cmp_nvim_lsp")
 			local capabilities = cmp_nvim_lsp.default_capabilities()
-			-- === 3. Mason 설정 (언어 서버 설치) ===
+
+			-- === LSP 서버 목록 ===
 			-- Node.js 풀스택 개발을 위한 기본 언어 서버 목록
+			-- stylua는 LSP 서버가 아닌 포맷터이므로 제외 (conform.nvim 등으로 관리)
 			local servers = {
 				"ts_ls", -- TypeScript/JavaScript
 				"eslint", -- ESLint (Linter)
@@ -22,13 +31,11 @@ return {
 				"marksman", -- Markdown
 				"bashls", -- Shell 스크립트
 				"tailwindcss",
-				"stylua",
 			}
 
-			require("mason").setup()
 			mason_lspconfig.setup({
 				ensure_installed = servers, -- 이 서버들이 자동으로 설치되도록 보장
-				automatic_installation = true, -- 서버가 없을 경우 자동 설치
+				automatic_installation = false, -- 매 시작 시 자동 설치 체크 비활성화
 				automatic_enable = true,
 			})
 
@@ -72,7 +79,6 @@ return {
 
 		-- === 의존성 플러그인 목록 ===
 		dependencies = {
-			-- 언어 서버 자동 설치 및 관리
 			"mason-org/mason.nvim",
 			"mason-org/mason-lspconfig.nvim",
 		},
