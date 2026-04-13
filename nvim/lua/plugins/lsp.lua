@@ -54,16 +54,15 @@ return {
 				-- 모노레포 환경에서 각 패키지의 package.json 기준으로 working directory를 잡아
 				-- @typescript-eslint 등 플러그인을 올바른 node_modules에서 resolve하도록 설정
 				eslint = {
-					root_dir = require("lspconfig.util").root_pattern(
-						".eslintrc",
-						".eslintrc.js",
-						".eslintrc.cjs",
-						".eslintrc.json",
-						"eslint.config.js",
-						"eslint.config.mjs",
-						"eslint.config.cjs",
-						"package.json"
-					),
+				root_dir = require("lspconfig.util").root_pattern(
+					".eslintrc",
+					".eslintrc.js",
+					".eslintrc.cjs",
+					".eslintrc.json",
+					"eslint.config.js",
+					"eslint.config.mjs",
+					"eslint.config.cjs"
+				),
 					settings = {
 						workingDirectory = { mode = "auto" },
 					},
