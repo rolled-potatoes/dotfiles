@@ -5,7 +5,7 @@ background-blur-radius = 10
 
 # fonts 
 font-family = "Victor Mono Medium"
-font-size = 16
+font-size = 14
 window-inherit-font-size = true
 
 # Pane (분할 창) 이동 설정
