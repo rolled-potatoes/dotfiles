@@ -56,36 +56,15 @@ return {
 				vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, opts)
 			end
 
-			-- 서버별 커스텀 설정
-			local server_configs = {
-				-- 모노레포 환경에서 각 패키지의 package.json 기준으로 working directory를 잡아
-				-- @typescript-eslint 등 플러그인을 올바른 node_modules에서 resolve하도록 설정
-				eslint = {
-				root_dir = require("lspconfig.util").root_pattern(
-					".eslintrc",
-					".eslintrc.js",
-					".eslintrc.cjs",
-					".eslintrc.json",
-					"eslint.config.js",
-					"eslint.config.mjs",
-					"eslint.config.cjs"
-				),
-					settings = {
-						workingDirectory = { mode = "auto" },
-					},
-				},
-			}
-
 			for _, server_name in ipairs(servers) do
 				if server_name == "eslint" then
 					vim.lsp.config("eslint", {
 						on_attach = on_attach,
 						capabilities = capabilities,
 						settings = {
-							-- monorepo(turborepo 등) 환경에서 각 패키지의 package.json 위치를
-							-- 기준으로 working directory를 자동 결정.
-							-- 루트에 eslint가 없어도 각 패키지의 eslint config/node_modules를 탐색함.
-							workingDirectories = { mode = "auto" },
+						-- monorepo(turborepo 등) 환경에서 파일별 ESLint working directory를 자동 결정.
+						-- eslint-language-server는 workingDirectory(단수) 키를 사용함.
+						workingDirectory = { mode = "auto" },
 						},
 					})
 				else
