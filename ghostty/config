@@ -18,3 +18,9 @@ keybind = command+bracket_right=next_tab
 
 # quick termnial
 keybind = global:cmd+grave_accent=toggle_quick_terminal
+
+# Split (분할 창) 크기 조절 설정
+keybind = super+ctrl+left=resize_split:left,30
+keybind = super+ctrl+right=resize_split:right,30
+keybind = super+ctrl+up=resize_split:up,30
+keybind = super+ctrl+down=resize_split:down,30
