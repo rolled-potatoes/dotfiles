@@ -33,8 +33,11 @@ The Notion task is the source of truth. Read it, clarify it with the user, creat
 - Treat the Notion task page as the external work log. Keep it updated after approvals and after each completed checklist item.
 - Before creating or updating Notion page content, fetch `notion://docs/enhanced-markdown-spec` and use the supported Notion Markdown syntax.
 - Preserve the user's existing Notion content. Append or update only the AI-managed sections listed in this command.
+- Delegate Notion fetch/update operations to the `notion-mcp` subagent when available to reduce cost.
 
 ## Step 1 - Fetch Notion Task
+
+Use the `notion-mcp` subagent for this step when available.
 
 1. Fetch the Notion task page from `$ARGUMENTS`.
 2. Extract these values when present:
@@ -112,6 +115,8 @@ Do not continue until the user explicitly approves.
 
 ## Step 3 - Record Gate 1 In Notion
 
+Use the `notion-mcp` subagent for this step when available.
+
 After Gate 1 approval and before creating the branch, update the Notion task page.
 
 Create or update an AI-managed section named `AI 작업 기록` with:
@@ -185,6 +190,8 @@ If investigation shows no valid change target:
 - Ask whether to record the task as no-op in Notion, adjust scope, or expand investigation.
 
 ## Step 6 - Record Gate 2 In Notion
+
+Use the `notion-mcp` subagent for this step when available.
 
 After Gate 2 approval and before editing files, update the Notion task page.
 
@@ -262,6 +269,8 @@ If verification cannot run, explain why.
 After verification completes, update the relevant verification checklist item in Notion.
 
 ## Step 9 - Record Final Result In Notion
+
+Use the `notion-mcp` subagent for this step when available.
 
 Before the final response, update the Notion task page.
 
