@@ -1,4 +1,6 @@
 {
+  "instructions": ["./instructions.md"],
+  "default_agent": "research",
   "mcp": {
     "notion": {
       "type": "remote",
@@ -16,7 +18,8 @@
   "$schema": "https://opencode.ai/config.json",
   "agent": {
     "plan": {
-      "model": "openai/gpt-5.5"
+      "model": "openai/gpt-5.5",
+      "description": "Default low-cost orchestrator that delegates code exploration to explore."
     },
     "build": {
       "model": "openai/gpt-5.4-mini-fast"
