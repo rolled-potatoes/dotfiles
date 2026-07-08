@@ -1,6 +1,5 @@
 {
-  "instructions": ["./instructions.md"],
-  "default_agent": "research",
+  "default_agent": "plan",
   "mcp": {
     "notion": {
       "type": "remote",
