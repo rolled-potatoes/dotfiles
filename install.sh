@@ -10,7 +10,7 @@ if ! command -v stow &>/dev/null; then
 fi
 
 # stow 패키지 목록 (디렉토리 이름 = 패키지)
-PACKAGES=(opencode agents ghostty nvim)
+PACKAGES=(opencode agents claude ghostty nvim)
 
 for pkg in "${PACKAGES[@]}"; do
   if [ -d "$DOTFILES_DIR/$pkg" ]; then
