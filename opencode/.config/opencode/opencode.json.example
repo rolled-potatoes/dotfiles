@@ -1,4 +1,5 @@
 {
+  "$schema": "https://opencode.ai/config.json",
   "default_agent": "plan",
   "mcp": {
     "notion": {
@@ -13,21 +14,20 @@
       "oauth": {}
     }
   },
-  "plugin": [ "@rolled-potatoes/opencode-mermaid"],
+  "plugin": ["@rolled-potatoes/opencode-mermaid"],
   "provider": {},
-  "$schema": "https://opencode.ai/config.json",
   "agent": {
     "plan": {
-      "model": "github-copilot/gpt-5.5"
+      "model": "provider/model"
     },
     "title": {
-      "model": "github-copilot/claude-haiku-4.5"
+      "model": "provider/model"
     },
     "build": {
-      "model": "github-copilot/gpt-5.3-codex"
+      "model": "provider/model"
     },
     "explore": {
-      "model": "github-copilot/claude-haiku-4.5"
+      "model": "provider/model"
     }
   }
 }

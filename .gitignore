@@ -9,6 +9,8 @@ opencode/.config/opencode/.gitignore
 opencode/.config/opencode/oh-my-opencode.json
 opencode/.config/opencode/skills-lock.json
 opencode/.config/opencode/plugins/
+opencode/.config/opencode/opencode.json
+opencode/.config/opencode/opencode.local.json
 
 # agents 런타임 생성 파일
 agents/.agents/.skill-lock.json
