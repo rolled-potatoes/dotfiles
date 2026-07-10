@@ -1,0 +1,6 @@
+interface:
+  display_name: "Validate Plan"
+  short_description: "구현 전 개발 계획의 사실성과 실행 가능성 검증"
+  default_prompt: "Use $validate-plan to verify the finalized implementation plan before writing production code."
+policy:
+  allow_implicit_invocation: false
