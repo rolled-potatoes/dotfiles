@@ -1,0 +1,312 @@
+#!/usr/bin/env python3
+"""Show token usage for Codex sessions and their subagents."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import sys
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any, Iterable
+
+
+CODEX_DIR = Path(os.environ.get("CODEX_HOME", Path.home() / ".codex"))
+
+
+@dataclass
+class Usage:
+    input: int = 0
+    cached: int = 0
+    output: int = 0
+    reasoning: int = 0
+    total: int = 0
+
+    @classmethod
+    def from_dict(cls, value: dict[str, Any] | None) -> "Usage":
+        value = value or {}
+        return cls(
+            input=int(value.get("input_tokens", 0) or 0),
+            cached=int(value.get("cached_input_tokens", 0) or 0),
+            output=int(value.get("output_tokens", 0) or 0),
+            reasoning=int(value.get("reasoning_output_tokens", 0) or 0),
+            total=int(value.get("total_tokens", 0) or 0),
+        )
+
+    def __add__(self, other: "Usage") -> "Usage":
+        return Usage(
+            self.input + other.input,
+            self.cached + other.cached,
+            self.output + other.output,
+            self.reasoning + other.reasoning,
+            self.total + other.total,
+        )
+
+
+@dataclass
+class Session:
+    id: str
+    path: Path
+    timestamp: datetime
+    cwd: str = ""
+    parent_id: str = ""
+    role: str = "main"
+    nickname: str = ""
+    model: str = ""
+    model_usages: dict[str, Usage] = field(default_factory=dict)
+    title: str = ""
+    usage: Usage = field(default_factory=Usage)
+
+
+def parse_time(value: str | None, fallback: float) -> datetime:
+    if value:
+        try:
+            return datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError:
+            pass
+    return datetime.fromtimestamp(fallback, tz=timezone.utc)
+
+
+def session_files() -> Iterable[Path]:
+    seen: set[Path] = set()
+    for root in (CODEX_DIR / "sessions", CODEX_DIR / "archived_sessions"):
+        if not root.exists():
+            continue
+        for path in root.rglob("rollout-*.jsonl"):
+            resolved = path.resolve()
+            if resolved not in seen:
+                seen.add(resolved)
+                yield path
+
+
+def load_titles() -> dict[str, str]:
+    result: dict[str, str] = {}
+    path = CODEX_DIR / "session_index.jsonl"
+    if not path.exists():
+        return result
+    with path.open(errors="replace") as stream:
+        for line in stream:
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if row.get("id") and row.get("thread_name"):
+                result[row["id"]] = row["thread_name"]
+    return result
+
+
+def source_details(meta: dict[str, Any]) -> tuple[str, str, str]:
+    parent = str(meta.get("parent_thread_id") or "")
+    role = str(meta.get("agent_role") or "")
+    nickname = str(meta.get("agent_nickname") or "")
+    source = meta.get("source")
+    if isinstance(source, dict):
+        subagent = source.get("subagent")
+        if isinstance(subagent, dict):
+            spawn = subagent.get("thread_spawn")
+            if isinstance(spawn, dict):
+                parent = parent or str(spawn.get("parent_thread_id") or "")
+                role = role or str(spawn.get("agent_role") or "")
+                nickname = nickname or str(spawn.get("agent_nickname") or "")
+            elif subagent.get("other"):
+                role = role or str(subagent["other"])
+    return parent, role or ("subagent" if parent else "main"), nickname
+
+
+def parse_session(path: Path, titles: dict[str, str]) -> Session | None:
+    meta: dict[str, Any] | None = None
+    model = ""
+    model_usages: dict[str, Usage] = {}
+    usage = Usage()
+    try:
+        with path.open(errors="replace") as stream:
+            for line in stream:
+                try:
+                    row = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                kind = row.get("type")
+                payload = row.get("payload") or {}
+                if kind == "session_meta" and meta is None:
+                    meta = payload
+                elif kind == "turn_context" and payload.get("model"):
+                    model = str(payload["model"])
+                elif kind == "event_msg" and payload.get("type") == "token_count":
+                    info = payload.get("info") or {}
+                    usage = Usage.from_dict(info.get("total_token_usage"))
+                    last_usage = info.get("last_token_usage")
+                    if last_usage:
+                        model_name = model or "unknown"
+                        model_usages[model_name] = (
+                            model_usages.get(model_name, Usage())
+                            + Usage.from_dict(last_usage)
+                        )
+    except (OSError, UnicodeError) as error:
+        print(f"warning: cannot read {path}: {error}", file=sys.stderr)
+        return None
+    if not meta:
+        return None
+    session_id = str(meta.get("id") or meta.get("session_id") or "")
+    if not session_id:
+        return None
+    parent, role, nickname = source_details(meta)
+    return Session(
+        id=session_id,
+        path=path,
+        timestamp=parse_time(meta.get("timestamp"), path.stat().st_mtime),
+        cwd=str(meta.get("cwd") or ""),
+        parent_id=parent,
+        role=role,
+        nickname=nickname,
+        model=model,
+        model_usages=model_usages,
+        title=titles.get(session_id, ""),
+        usage=usage,
+    )
+
+
+def number(value: int) -> str:
+    return f"{value:,}"
+
+
+def usage_line(usage: Usage) -> str:
+    return (
+        f"total {number(usage.total)} | input {number(usage.input)} "
+        f"(cached {number(usage.cached)}) | output {number(usage.output)} "
+        f"(reasoning {number(usage.reasoning)})"
+    )
+
+
+def short_id(value: str) -> str:
+    return value[-12:] if len(value) > 12 else value
+
+
+def display_name(session: Session) -> str:
+    if session.role == "main":
+        return session.title or Path(session.cwd).name or "main"
+    detail = session.role
+    if session.nickname:
+        detail += f"/{session.nickname}"
+    return detail
+
+
+def descendants(root_id: str, children: dict[str, list[Session]]) -> list[Session]:
+    result: list[Session] = []
+    for child in children.get(root_id, []):
+        result.append(child)
+        result.extend(descendants(child.id, children))
+    return result
+
+
+def print_tree(
+    session: Session,
+    children: dict[str, list[Session]],
+    prefix: str = "",
+    last: bool = True,
+) -> None:
+    branch = "└─ " if last else "├─ "
+    label = f"{display_name(session)} [{short_id(session.id)}]"
+    if len(session.model_usages) > 1:
+        label += f" · {len(session.model_usages)} models"
+    elif session.model:
+        label += f" · {session.model}"
+    print(prefix + branch + label)
+    detail_prefix = prefix + ("   " if last else "│  ") + "   "
+    print(detail_prefix + usage_line(session.usage))
+    if len(session.model_usages) > 1:
+        for model_name, model_usage in session.model_usages.items():
+            print(detail_prefix + f"↳ {model_name}: {usage_line(model_usage)}")
+    items = children.get(session.id, [])
+    next_prefix = prefix + ("   " if last else "│  ")
+    for index, child in enumerate(items):
+        print_tree(child, children, next_prefix, index == len(items) - 1)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Show Codex token usage by session and subagent."
+    )
+    parser.add_argument("--days", type=int, default=7, help="look back N days (default: 7)")
+    parser.add_argument("--all", action="store_true", help="include all stored sessions")
+    parser.add_argument("--session", help="show an ID (full or suffix) and its agent tree")
+    parser.add_argument("--limit", type=int, default=10, help="maximum root sessions (default: 10)")
+    args = parser.parse_args()
+
+    titles = load_titles()
+    parsed_sessions = [
+        item for path in session_files() if (item := parse_session(path, titles))
+    ]
+    by_id: dict[str, Session] = {}
+    for item in parsed_sessions:
+        existing = by_id.get(item.id)
+        if existing is None or item.usage.total > existing.usage.total:
+            by_id[item.id] = item
+    sessions = list(by_id.values())
+    children: dict[str, list[Session]] = {}
+    for item in sessions:
+        if item.parent_id:
+            children.setdefault(item.parent_id, []).append(item)
+    for items in children.values():
+        items.sort(key=lambda item: item.timestamp)
+
+    # A parent rollout can be unavailable after process cleanup while its spawned
+    # agents remain on disk. Keep those agents visible under a synthetic parent.
+    for parent_id, items in list(children.items()):
+        if parent_id not in by_id:
+            virtual = Session(
+                id=parent_id,
+                path=Path(),
+                timestamp=min(item.timestamp for item in items),
+                title="parent session (rollout unavailable)",
+            )
+            sessions.append(virtual)
+            by_id[parent_id] = virtual
+
+    if args.session:
+        matches = [item for item in sessions if item.id.endswith(args.session)]
+        if not matches:
+            print(f"No session ID ending in {args.session!r} was found.", file=sys.stderr)
+            return 1
+        selected = max(matches, key=lambda item: item.timestamp)
+        while selected.parent_id in by_id:
+            selected = by_id[selected.parent_id]
+        roots = [selected]
+    else:
+        cutoff = datetime.now(timezone.utc) - timedelta(days=max(args.days, 0))
+        roots = [
+            item
+            for item in sessions
+            if not item.parent_id and (args.all or item.timestamp >= cutoff)
+        ]
+        roots.sort(key=lambda item: item.timestamp, reverse=True)
+        roots = roots[: max(args.limit, 0)]
+
+    if not roots:
+        print("No matching Codex sessions were found.")
+        return 0
+
+    grand_total = Usage()
+    agent_count = 0
+    for root in roots:
+        tree = [root, *descendants(root.id, children)]
+        subtotal = Usage()
+        for item in tree:
+            subtotal += item.usage
+        grand_total += subtotal
+        agent_count += len(tree) - 1
+        local_time = root.timestamp.astimezone().strftime("%Y-%m-%d %H:%M")
+        print(f"\n{local_time}  {display_name(root)}")
+        print(f"tree total: {usage_line(subtotal)} · {len(tree) - 1} subagent(s)")
+        print_tree(root, children)
+
+    print(
+        f"\nShown: {len(roots)} root session(s), {agent_count} subagent(s)\n"
+        f"Combined: {usage_line(grand_total)}"
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
