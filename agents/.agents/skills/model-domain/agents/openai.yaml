@@ -1,0 +1,4 @@
+interface:
+  display_name: "Model Domain (DDD)"
+  short_description: "근거 기반 DDD 모델링과 비즈니스 규칙 최신화"
+  default_prompt: "Use $model-domain to analyze this service and write or update Korean DDD documents while preserving canonical English domain terms."
