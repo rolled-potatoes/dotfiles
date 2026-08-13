@@ -1,47 +1,70 @@
--- fuzzy finder: 파일 탐색기
--- https://github.com/nvim-telescope/telescope.nvim
 return {
 	"nvim-telescope/telescope.nvim",
+	cmd = "Telescope",
 	dependencies = { "nvim-lua/plenary.nvim" },
-	config = function()
-		local telescope = require("telescope")
-		local builtin = require("telescope.builtin")
-
-		telescope.setup({
-			defaults = {
-				file_ignore_patterns = {
-					".git",
-					".DS_Store",
-					"%.cache/",
-					"node_modules",
-					"dist",
-					"build",
-				},
-				cache_picker = {
-					num_pickers = 10, -- 최근 10개 검색 캐시
-					limit_entries = 1000, -- 각 picker당 최대 1000개 항목
-				},
+	opts = {
+		defaults = {
+			file_ignore_patterns = {
+				"%.git/",
+				"%.DS_Store",
+				"%.cache/",
+				"node_modules/",
+				"dist/",
+				"build/",
 			},
-			pickers = {
-				find_files = {
-					theme = "dropdown",
-				},
+			cache_picker = {
+				num_pickers = 10,
+				limit_entries = 1000,
 			},
-		})
-
-		vim.keymap.set("n", "<leader>ff", function()
-			builtin.find_files({
-				no_ignore = false,
-				hidden = true,
-			})
-		end, { desc = "Telescope find files", noremap = true, silent = true })
-
-		vim.keymap.set("n", "<leader>fg", builtin.live_grep, { desc = "Telescope live grep" })
-		vim.keymap.set("n", "<leader>fb", builtin.buffers, { desc = "Telescope buffers" })
-		vim.keymap.set("n", "<leader>fl", builtin.diagnostics, { desc = "Telescope buffers" })
-
-		-- 검색 기록 관련 키맵
-		vim.keymap.set("n", "<leader>fr", builtin.resume, { desc = "Telescope resume last search" })
-		vim.keymap.set("n", "<leader>fp", builtin.pickers, { desc = "Telescope cached pickers" })
-	end,
+		},
+		pickers = {
+			find_files = {
+				theme = "dropdown",
+			},
+		},
+	},
+	keys = {
+		{
+			"<leader>ff",
+			function()
+				require("telescope.builtin").find_files({ no_ignore = false, hidden = true })
+			end,
+			desc = "파일 찾기",
+		},
+		{
+			"<leader>fg",
+			function()
+				require("telescope.builtin").live_grep()
+			end,
+			desc = "문자열 찾기",
+		},
+		{
+			"<leader>fb",
+			function()
+				require("telescope.builtin").buffers()
+			end,
+			desc = "버퍼 찾기",
+		},
+		{
+			"<leader>fl",
+			function()
+				require("telescope.builtin").diagnostics()
+			end,
+			desc = "진단 목록",
+		},
+		{
+			"<leader>fr",
+			function()
+				require("telescope.builtin").resume()
+			end,
+			desc = "마지막 검색 재개",
+		},
+		{
+			"<leader>fp",
+			function()
+				require("telescope.builtin").pickers()
+			end,
+			desc = "최근 검색 목록",
+		},
+	},
 }

@@ -29,11 +29,6 @@ if ! command -v stow &>/dev/null; then
   brew install stow
 fi
 
-if [ -f "$DOTFILES_DIR/.gitmodules" ]; then
-  echo "Initializing git submodules..."
-  git -C "$DOTFILES_DIR" submodule update --init --recursive
-fi
-
 # opencode 로컬 설정 초기화 (기기별 값이므로 git에서 제외)
 OPENCODE_DOTFILES_CONFIG_DIR="$DOTFILES_DIR/opencode/.config/opencode"
 OPENCODE_CONFIG_FILE="$OPENCODE_DOTFILES_CONFIG_DIR/opencode.json"

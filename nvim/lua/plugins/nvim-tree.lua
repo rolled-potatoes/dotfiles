@@ -1,54 +1,43 @@
--- keymap
--- 토글
--- vim.keymap.set('n','<C-n>t',':NvimTreeToggle <CR>')
--- 현재 열린 파일로 트리 검색
--- vim.keymap.set('n','<C-n>f',':NvimTreeFindFile <CR>')
-
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
-vim.opt.termguicolors = true
-vim.cmd([[
-  highlight NvimTreeNormal guibg=NONE ctermbg=NONE
-  highlight NvimTreeNormalNC guibg=NONE ctermbg=NONE
-  highlight NvimTreeEndOfBuffer guibg=NONE ctermbg=NONE
-]])
 
 return {
 	"nvim-tree/nvim-tree.lua",
 	version = "*",
-	lazy = false,
+	cmd = { "NvimTreeToggle", "NvimTreeFindFile" },
 	dependencies = {
 		"nvim-tree/nvim-web-devicons",
 	},
-	config = function()
+	keys = {
+		{ "<C-n>t", "<cmd>NvimTreeToggle<CR>", desc = "파일 트리 토글" },
+		{ "<C-n>f", "<cmd>NvimTreeFindFile<CR>", desc = "현재 파일을 트리에서 찾기" },
+	},
+	opts = function()
 		local function on_attach(bufnr)
 			local api = require("nvim-tree.api")
-
-			local function opts(desc)
-				return { desc = "nvim-tree: " .. desc, buffer = bufnr, noremap = true, silent = true, nowait = true }
+			local function map(lhs, rhs, desc)
+				vim.keymap.set("n", lhs, rhs, {
+					buffer = bufnr,
+					desc = "nvim-tree: " .. desc,
+					nowait = true,
+					silent = true,
+				})
 			end
 
-			-- default mappings
 			api.config.mappings.default_on_attach(bufnr)
-			vim.keymap.set("n", "sv", api.node.open.vertical, opts("세로 분할"))
-			vim.keymap.set("n", "ss", api.node.open.horizontal, opts("가로 분할"))
+			map("<leader>ws", api.node.open.horizontal, "가로 분할로 열기")
+			map("<leader>wv", api.node.open.vertical, "세로 분할로 열기")
 		end
-		require("nvim-tree").setup({
+
+		return {
 			on_attach = on_attach,
 			view = {
 				side = "left",
-				width = '250',
+				width = "25%",
 			},
 			git = {
 				ignore = false,
 			},
-			view = {
-				side = "left",
-        width = "250"
-			},
-		})
-		vim.keymap.set("n", "<C-n>t", ":NvimTreeToggle <CR>")
-		-- 현재 열린 파일로 트리 검색
-		vim.keymap.set("n", "<C-n>f", ":NvimTreeFindFile <CR>")
+		}
 	end,
 }

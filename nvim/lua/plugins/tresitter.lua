@@ -1,6 +1,7 @@
 return {
 	"nvim-treesitter/nvim-treesitter",
 	build = ":TSUpdate",
+	event = { "BufReadPost", "BufNewFile" },
 	config = function()
 		local ts = require("nvim-treesitter.configs")
 		ts.setup({
@@ -8,6 +9,7 @@ return {
 				"lua",
 				"vim",
 				"markdown",
+				"markdown_inline",
 				"tsx",
 				"css",
 				"html",
@@ -16,7 +18,8 @@ return {
 				"json",
 				"scss",
 			},
-			auto_install = true,
+			auto_install = false,
+			highlight = { enable = true },
 		})
 	end,
 }

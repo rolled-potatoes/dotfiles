@@ -27,10 +27,10 @@ OpenCode, Codex 등 AI CLI는 각 도구의 공식 설치 방법으로 설치한
 
 ### 2. 저장소 복제
 
-Neovim submodule까지 함께 복제한다.
+저장소를 개인 설정 경로에 복제한다.
 
 ```bash
-git clone --recurse-submodules git@github.com:rolled-potatoes/dotfiles.git ~/dotfiles
+git clone git@github.com:rolled-potatoes/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 ```
 
@@ -103,12 +103,11 @@ mv ~/.config/nvim ~/.config/nvim.backup
 
 ## 설정 갱신
 
-다른 PC에서 반영한 설정을 가져올 때는 저장소와 submodule을 갱신한 뒤 설치 스크립트를 다시 실행한다.
+다른 PC에서 반영한 설정을 가져올 때는 저장소를 갱신한 뒤 설치 스크립트를 다시 실행한다.
 
 ```bash
 cd ~/dotfiles
-git pull --recurse-submodules
-git submodule update --init --recursive
+git pull
 ./install.sh
 ```
 
