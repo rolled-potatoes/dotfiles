@@ -1,0 +1,7 @@
+interface:
+  display_name: "Create Meta Prompt"
+  short_description: "Codex 작업을 위한 실행 가능한 Agent 프롬프트 작성"
+  default_prompt: "Use $create-meta-prompt to create an execution-ready Codex Agent prompt for a new task."
+
+policy:
+  allow_implicit_invocation: true
