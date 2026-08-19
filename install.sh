@@ -29,6 +29,11 @@ if ! command -v stow &>/dev/null; then
   brew install stow
 fi
 
+if ! brew list --cask font-cascadia-code &>/dev/null; then
+  echo "Installing Cascadia Code font via Homebrew..."
+  brew install --cask font-cascadia-code
+fi
+
 # opencode 로컬 설정 초기화 (기기별 값이므로 git에서 제외)
 OPENCODE_DOTFILES_CONFIG_DIR="$DOTFILES_DIR/opencode/.config/opencode"
 OPENCODE_CONFIG_FILE="$OPENCODE_DOTFILES_CONFIG_DIR/opencode.json"

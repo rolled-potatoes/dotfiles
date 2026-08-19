@@ -3,6 +3,14 @@ automatic_backups
 __pycache__/
 *.py[cod]
 
+# 시스템에 Homebrew cask로 설치하는 글꼴 바이너리
+*.ttf
+*.otf
+*.woff
+*.woff2
+ghostty/themes/CascadiaCode-*/
+ghostty/themes/CascadiaCode-*.zip
+
 # opencode 런타임 생성 파일 (git 불필요)
 opencode/.config/opencode/node_modules/
 opencode/.config/opencode/bun.lock

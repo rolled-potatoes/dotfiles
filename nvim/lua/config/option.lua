@@ -2,6 +2,7 @@ vim.opt.number = true
 vim.opt.title = true
 vim.opt.hlsearch = true
 vim.opt.termguicolors = true
+vim.opt.guifont = "Cascadia Code:h16"
 
 vim.opt.expandtab = true
 vim.opt.smartindent = true

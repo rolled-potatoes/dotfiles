@@ -24,6 +24,7 @@ brew install --cask ghostty karabiner-elements
 ```
 
 OpenCode, Codex 등 AI CLI는 각 도구의 공식 설치 방법으로 설치한다. Bun 또는 npm은 OpenCode plugin을 사용할 때만 필요하다.
+`install.sh`는 Ghostty와 GUI Neovim 설정에 사용하는 Cascadia Code를 Homebrew cask로 설치한다. 폰트 파일은 저장소에 포함하지 않는다.
 
 ### 2. 저장소 복제
 
@@ -88,6 +89,7 @@ codex-token-usage --help
 - `nvim`을 열어 `lazy.nvim` plugin 설치와 Mason의 LSP 설치가 끝나는지 확인한다.
 - OpenCode를 실행해 선택한 model과 `@rolled-potatoes/opencode-mermaid` plugin을 확인한다.
 - Ghostty가 `~/.config/ghostty/config`를 읽는지 확인한다.
+- `brew list --cask font-cascadia-code`로 Cascadia Code 설치를 확인한다.
 - Karabiner-Elements를 열어 저장된 profile과 complex modification을 확인한다.
 - 사용하는 AI 도구의 인증과 MCP 연결을 확인한다.
 
@@ -124,3 +126,4 @@ git pull
 - OpenCode의 `node_modules`, lock file, plugin runtime 파일
 - Karabiner의 `automatic_backups`
 - shell의 PATH와 PC별 환경 변수
+- Cascadia Code를 포함한 시스템 폰트 파일 (설치 스크립트가 Homebrew cask로 설치)

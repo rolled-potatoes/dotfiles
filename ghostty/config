@@ -1,11 +1,11 @@
 # 테마 설정
-theme = Monokai Pro
-background-opacity = 0.85
+theme = zenbones-neobones-light
+background-opacity = 1
 background-blur-radius = 10
 
 # fonts 
-font-family = "Victor Mono Medium"
-font-size = 14
+font-family = "Cascadia Code"
+font-size = 16
 window-inherit-font-size = true
 
 # Pane (분할 창) 이동 설정
