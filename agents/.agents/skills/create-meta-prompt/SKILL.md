@@ -1,6 +1,6 @@
 ---
 name: create-meta-prompt
-description: 본 작업을 직접 수행하지 않고 근거와 사용자 결정을 수집해 다른 Codex가 바로 실행할 수 있는 신규 Markdown Agent 프롬프트를 작성한다. Use when the user asks to create a new 메타 프롬프트, Agent prompt, 작업 지시서, 실행 프롬프트, prompt template, checklist, or evaluation criteria for a Codex task. Do not use to execute the underlying task, revise an existing prompt, or validate a finalized implementation plan.
+description: 본 작업을 직접 수행하지 않고 근거와 사용자 결정을 수집해 다른 Codex가 바로 실행할 수 있는 신규 Markdown Agent 프롬프트를 작성한다. Use when the user explicitly invokes $create-meta-prompt or asks to create a new 메타 프롬프트, Agent prompt, 작업 지시서, 실행 프롬프트, prompt template, checklist, or evaluation criteria for a Codex task. Treat an explicitly invoked skill as the method for producing the prompt, not as the task target unless the user separately says to modify this skill. Do not execute the underlying task, revise an existing prompt, or validate a finalized implementation plan.
 ---
 
 # Create Meta Prompt
@@ -11,6 +11,18 @@ description: 본 작업을 직접 수행하지 않고 근거와 사용자 결정
 
 항상 [프롬프트 산출물 계약](references/prompt-contract.md)을 끝까지 읽고 필수 구조, 선택 구조, 실행 체크리스트와 평가 게이트를 적용한다.
 
+## 명시 호출 게이트
+
+사용자가 `$create-meta-prompt`를 명시적으로 호출하면 다음 순서로 요청을 해석한다.
+
+1. `create-meta-prompt`는 산출물을 만드는 **도구**로 고정한다.
+2. 호출 뒤 문장에서 본 작업의 **대상**과 **동작**을 별도로 추출한다.
+3. “이 스킬”, “이것”, “문서 작성 스킬” 같은 지시어는 가장 가까운 명시 대상과 대조한다. 호출된 스킬 자체를 대상으로 자동 해석하지 않는다.
+4. 대상이 둘 이상 가능하고 조사로 확정할 수 없으면 파일을 변경하지 말고 한 가지 짧은 질문으로 대상을 확인한다.
+5. 최종 산출물을 `프롬프트`로 고정한다. 사용자가 별도로 프롬프트 파일 저장을 요청하지 않았다면 어떤 파일도 쓰지 않는다.
+
+예를 들어 `$create-meta-prompt`와 함께 “문서를 작성하는 `write-docs` 스킬을 지침으로 변경하고자 한다”라고 요청하면, 대상은 `write-docs`이고 결과는 그 마이그레이션을 수행할 작업 프롬프트다. `create-meta-prompt`나 `write-docs`를 현재 실행에서 변경하지 않는다.
+
 ## 책임 경계
 
 - 신규 작업 프롬프트만 작성한다. 제공된 기존 프롬프트의 첨삭이나 재작성은 수행하지 않는다.
@@ -20,10 +32,13 @@ description: 본 작업을 직접 수행하지 않고 근거와 사용자 결정
 - 저장소 지침과 설치가 확인된 스킬·도구만 생성 프롬프트에 명시한다. 존재한다고 추측하지 않는다.
 - 사용자의 명시적 지시와 현재 실행 환경의 상위 지침을 생성 프롬프트로 우회하거나 약화하지 않는다.
 
+쓰기 도구, 파일 수정 명령, 외부 쓰기 도구를 호출하기 전에 현재 요청의 직접 산출물이 프롬프트 파일 저장인지 확인한다. 아니라면 호출하지 않는다. 본 작업이 변경·구축 유형이어도 변경 권한은 생성할 프롬프트 속 대상 Codex의 권한이지 현재 실행의 권한이 아니다.
+
 ## 1. 요청과 대상 고정
 
 다음 항목을 입력에서 먼저 추출한다.
 
+- 호출된 스킬과 본 작업의 대상을 분리한 한 문장 요약
 - 본 작업의 목표와 필요한 결과
 - 결과를 사용할 사람 또는 시스템
 - 대상 Codex가 수행할 요청 유형
@@ -53,6 +68,8 @@ description: 본 작업을 직접 수행하지 않고 근거와 사용자 결정
 - **진단**: 원인과 근거를 찾되 사용자가 수정까지 요청하지 않았다면 변경을 허용하지 않는다.
 - **변경·구축**: 명시된 대상의 구현, 필요한 검증과 안전한 후속 작업까지 허용한다.
 - **자동화·모니터링**: 반복 조건, 주기, 종료 조건과 외부 상태 변경 범위를 명시한다.
+
+이 분류는 생성할 프롬프트 속 본 작업의 권한만 정한다. 현재 실행은 항상 읽기 전용 조사와 프롬프트 전달로 제한한다.
 
 프롬프트에 없는 권한을 일반적인 관행이라는 이유로 추가하지 않는다. 외부 쓰기나 복구하기 어려운 작업에는 정확한 대상, 사전 확인, 성공 확인과 실패 처리 조건을 포함한다.
 
@@ -113,6 +130,8 @@ description: 본 작업을 직접 수행하지 않고 근거와 사용자 결정
 
 특히 다음 실패를 허용하지 않는다.
 
+- 명시 호출된 스킬과 본 작업의 대상을 근거 없이 동일시함
+- 현재 실행에서 본 작업의 파일, 설정, 데이터 또는 외부 상태를 변경함
 - 빈 placeholder, TODO, 선택되지 않은 대안
 - 입력이나 근거에 없는 기능, 정책, 권한 또는 시스템
 - 요청하지 않은 공개 동작, 오류 처리, 권고 또는 추가 산출물
@@ -136,6 +155,7 @@ description: 본 작업을 직접 수행하지 않고 근거와 사용자 결정
 - “운영 장애를 조사하는 Agent 작업 지시서와 평가 기준을 작성해 줘.”
 - “매주 보고서를 만드는 자동화 작업용 메타 프롬프트를 설계해 줘.”
 - “이 요구사항으로 문서 작성 Agent가 실행할 Markdown 프롬프트를 만들어 줘.”
+- “`$create-meta-prompt`를 사용해 `write-docs` 스킬을 전역 지침으로 마이그레이션하는 작업 프롬프트를 작성해 줘.”
 
 다음 요청에는 사용하지 않는다.
 
