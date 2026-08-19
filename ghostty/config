@@ -5,6 +5,7 @@ background-blur-radius = 10
 
 # fonts 
 font-family = "Cascadia Code"
+font-family = "D2Coding"
 font-size = 16
 window-inherit-font-size = true
 

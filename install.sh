@@ -29,10 +29,12 @@ if ! command -v stow &>/dev/null; then
   brew install stow
 fi
 
-if ! brew list --cask font-cascadia-code &>/dev/null; then
-  echo "Installing Cascadia Code font via Homebrew..."
-  brew install --cask font-cascadia-code
-fi
+for font_cask in font-cascadia-code font-d2coding; do
+  if ! brew list --cask "$font_cask" &>/dev/null; then
+    echo "Installing $font_cask via Homebrew..."
+    brew install --cask "$font_cask"
+  fi
+done
 
 # opencode 로컬 설정 초기화 (기기별 값이므로 git에서 제외)
 OPENCODE_DOTFILES_CONFIG_DIR="$DOTFILES_DIR/opencode/.config/opencode"
