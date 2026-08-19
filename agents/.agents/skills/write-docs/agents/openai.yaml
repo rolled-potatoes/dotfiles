@@ -1,7 +1,0 @@
-interface:
-  display_name: "Write Docs"
-  short_description: "읽기 쉬운 한국어 문서 작성과 가독성 품질 검토"
-  default_prompt: "Use $write-docs to draft or revise this document in clear, reader-friendly Korean."
-
-policy:
-  allow_implicit_invocation: true

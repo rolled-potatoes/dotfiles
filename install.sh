@@ -92,7 +92,11 @@ stow_package() {
 
 # Stow 2.4에는 --no-folding이 없으므로 중간 디렉터리를 먼저 만들어
 # ~/.config, ~/.local 또는 ~/.agents 전체가 저장소 링크가 되는 것을 방지한다.
-mkdir -p "$HOME/.config/opencode" "$HOME/.agents" "$HOME/.local/bin"
+mkdir -p \
+  "$HOME/.config/opencode" \
+  "$HOME/.agents/references" \
+  "$HOME/.agents/scripts" \
+  "$HOME/.local/bin"
 
 # HOME 아래의 공용 설정.
 for package in opencode agents codex; do

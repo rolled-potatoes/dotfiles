@@ -1,9 +1,4 @@
----
-name: write-docs
-description: 사람이 빠르게 이해할 수 있는 한국어 문서를 작성·수정·검토하고, 결론 우선 구성, 조직 용어, 간결한 문단, 목록과 비교표를 적용한다. Use when Codex writes, rewrites, or reviews human-facing documentation such as 개발 계획서, 정책 문서, 회의록, PR description, 도메인 지침, 운영 가이드, 의사결정 기록, 결과 보고서, or similar Markdown prose.
----
-
-# Write Docs
+# 한국어 사람 대상 문서 작성 지침
 
 사람이 번역하거나 구조를 다시 해석하지 않아도 목적과 결론을 파악할 수 있는 문서를 작성한다.
 
@@ -12,7 +7,7 @@ description: 사람이 빠르게 이해할 수 있는 한국어 문서를 작성
 1. 사용자의 명시적 지시를 따른다.
 2. 조직·저장소의 기존 템플릿과 용어를 따른다.
 3. 함께 호출된 PR, DDD, 회의록 등 전문 스킬의 필수 구조와 내용을 따른다.
-4. 위 규칙과 충돌하지 않는 범위에서 이 스킬의 가독성 기준을 적용한다.
+4. 위 규칙과 충돌하지 않는 범위에서 이 지침의 가독성 기준을 적용한다.
 
 기존 템플릿의 섹션을 임의로 추가·삭제하거나 이름을 바꾸지 않는다. 템플릿이 없을 때만 독자와 목적에 맞는 최소 구조를 만든다.
 
@@ -89,7 +84,7 @@ description: 사람이 빠르게 이해할 수 있는 한국어 문서를 작성
 Markdown 파일을 작성하거나 수정했다면 가능할 때 경량 검사를 실행한다.
 
 ```bash
-python3 <skill-dir>/scripts/validate_docs.py <markdown-file-or-directory> [...]
+python3 "$HOME/.agents/scripts/validate_docs.py" <markdown-file-or-directory> [...]
 ```
 
 오류는 수정한 뒤 완료하고, 경고는 문서 목적에 비추어 검토한다. 경고가 타당한 예외라면 문서를 억지로 바꾸지 않는다.

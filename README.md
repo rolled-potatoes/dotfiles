@@ -1,6 +1,6 @@
 # dotfiles
 
-새 Mac에서 개인 개발 환경의 설정을 복원하기 위한 저장소다. 애플리케이션과 CLI는 별도로 설치하고, 이 저장소의 `install.sh`로 추적 중인 설정과 공용 agent skills를 연결한다.
+새 Mac에서 개인 개발 환경의 설정을 복원하기 위한 저장소다. 애플리케이션과 CLI는 별도로 설치하고, 이 저장소의 `install.sh`로 추적 중인 설정과 공용 agent 설정을 연결한다.
 
 이 저장소는 애플리케이션 버전, 로그인·OAuth 상태, API key와 기기별 비밀값까지 복원하지 않는다.
 
@@ -47,7 +47,10 @@ cd ~/dotfiles
 | 대상 | 저장소 경로 | 설치 위치 |
 | --- | --- | --- |
 | OpenCode | `opencode/.config/opencode` | `~/.config/opencode` |
-| 공용 agent skills | `agents/.agents` | `~/.agents` |
+| 전역 agent 라우터 | `agents/.agents/AGENTS.md` | `~/.agents/AGENTS.md` |
+| 조건부 문서 작성 참조 | `agents/.agents/references/write-docs.md` | `~/.agents/references/write-docs.md` |
+| 공용 agent skills | `agents/.agents/skills` | `~/.agents/skills` |
+| 독립 문서 검사 도구 | `agents/.agents/scripts/validate_docs.py` | `~/.agents/scripts/validate_docs.py` |
 | Ghostty | `ghostty` | `~/.config/ghostty` |
 | Neovim | `nvim` | `~/.config/nvim` |
 | Karabiner-Elements | `karabiner` | `~/.config/karabiner` |
