@@ -56,6 +56,7 @@ cd ~/dotfiles
 | Neovim | `nvim` | `~/.config/nvim` |
 | Karabiner-Elements | `karabiner` | `~/.config/karabiner` |
 | Codex token usage 도구 | `codex/.local/bin/codex-token-usage` | `~/.local/bin/codex-token-usage` |
+| Codex 전역 지침 | `.codex/AGENTS.md` | `~/.codex/AGENTS.md` |
 
 ### 4. 기기별 설정
 

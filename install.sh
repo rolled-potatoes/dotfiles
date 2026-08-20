@@ -106,7 +106,7 @@ mkdir -p \
   "$HOME/.local/bin"
 
 # HOME 아래의 공용 설정.
-for package in opencode agents codex; do
+for package in opencode agents codex .codex; do
   stow_package "$package" "$HOME"
 done
 
