@@ -57,6 +57,8 @@ cd ~/dotfiles
 | Karabiner-Elements | `karabiner` | `~/.config/karabiner` |
 | Codex token usage 도구 | `codex/.local/bin/codex-token-usage` | `~/.local/bin/codex-token-usage` |
 | Codex 전역 지침 | `.codex/AGENTS.md` | `~/.codex/AGENTS.md` |
+| Codex 탐색 에이전트 | `.codex/agents/explorer.toml` | `~/.codex/agents/explorer.toml` |
+| Codex 검증 에이전트 | `.codex/agents/verifier.toml` | `~/.codex/agents/verifier.toml` |
 
 ### 4. 기기별 설정
 
