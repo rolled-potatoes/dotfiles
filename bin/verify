@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$DOTFILES_DIR/scripts/bootstrap-lib.sh"
+DRY_RUN=0; VERIFY_ONLY=1; ALLOW_BACKUP=0; SKIP_PLUGINS=1
+preflight
+verify_environment
