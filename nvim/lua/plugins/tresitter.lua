@@ -5,11 +5,7 @@ return {
 	build = ":TSUpdate",
 	opts = {
 		install_dir = vim.fn.stdpath("data") .. "/site",
-	},
-	config = function(_, opts)
-		local treesitter = require("nvim-treesitter")
-		treesitter.setup(opts)
-		treesitter.install({
+		ensure_installed = {
 			"lua",
 			"vim",
 			"markdown",
@@ -21,7 +17,10 @@ return {
 			"typescript",
 			"json",
 			"scss",
-		})
+		},
+	},
+	config = function(_, opts)
+		require("nvim-treesitter.configs").setup(opts)
 
 		vim.api.nvim_create_autocmd("FileType", {
 			group = vim.api.nvim_create_augroup("treesitter_highlighting", { clear = true }),
