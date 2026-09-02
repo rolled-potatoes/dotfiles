@@ -3,6 +3,7 @@
 brew "git"
 brew "ripgrep"
 brew "neovim"
+brew "tree-sitter-cli"
 brew "zsh"
 brew "opencode"
 brew "lazygit"
