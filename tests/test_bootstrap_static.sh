@@ -20,3 +20,11 @@ remove_retired_codex_command
 ln -s /tmp/unrelated-command "$HOME/.local/bin/codex-token-usage"
 remove_retired_codex_command
 test -L "$HOME/.local/bin/codex-token-usage"
+
+printf '%s\n' 'export USER_SETTING=kept' > "$HOME/.zshrc"
+configure_zsh
+configure_zsh
+test "$(rg -Fxc "alias nvimr='nvim -R'" "$HOME/.zshrc")" -eq 1
+rg -Fqx 'export USER_SETTING=kept' "$HOME/.zshrc"
+rg -Fqx "$MANAGED_BEGIN" "$HOME/.zshrc"
+rg -Fqx "$MANAGED_END" "$HOME/.zshrc"

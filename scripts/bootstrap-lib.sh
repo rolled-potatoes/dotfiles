@@ -101,7 +101,8 @@ fi'
 fi
 if command -v mise >/dev/null 2>&1; then
   eval "$(mise activate zsh)"
-fi'
+fi
+alias nvimr='"'"'nvim -R'"'"''
 }
 install_oh_my_zsh() {
   say '==> 5/7 oh-my-zsh'

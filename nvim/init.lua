@@ -9,4 +9,6 @@ vim.g.loaded_ruby_provider = 0
 
 require("config.option")
 require("config.base-keymap")
+require("code-review").setup()
+require("code-notes").setup()
 require("config.lazy")

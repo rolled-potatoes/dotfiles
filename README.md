@@ -73,6 +73,63 @@ Codex는 Homebrew formula가 아니라 cask다. Ghostty와 Karabiner는 GUI 앱�
 - 기본 로그인 셸을 Homebrew zsh로 바꾸려면 `/etc/shells` 등록과 `chsh`가 필요하다. 스크립트는 인증을 요구하는 이 동작을 자동 실행하지 않으며, 완료 메시지의 명령을 검토한 후 직접 실행한다.
 - OpenCode plugin 설치를 나중에 하려면 `./bin/bootstrap --skip-plugins` 없이 다시 실행한다. Node는 mise가 제공한다.
 
+## Neovim 탐색 전용 모드와 코드 메모
+
+`nvimr`는 bootstrap이 `.zshrc`의 dotfiles marker block 안에 설치하는 별칭이다. 기존 `.zshrc` 내용은 보존한다.
+
+```bash
+nvimr ./
+```
+
+`nvim -R`는 Neovim의 `readonly`만 설정하고 `modifiable`은 유지한다. 설정의 탐색 전용 모드는 `-R` 인자를 감지하면 일반 파일 버퍼에 `readonly=true`, `modifiable=false`를 적용한다. 따라서 help, terminal, prompt, quickfix, Telescope, nvim-tree와 코드 메모 팝업은 입력 가능하지만 일반 파일은 수정할 수 없다.
+
+명령은 다음과 같다.
+
+- `:CodeReviewEnable`, `:CodeReviewDisable`, `:CodeReviewToggle`, `:CodeReviewStatus`
+- `:CodeNoteLine`, `:CodeNoteRange`, `:CodeNoteFile`, `:CodeNoteShow`, `:CodeNoteEdit`, `:CodeNoteDelete`
+- `:CodeNotes`, `:CodeNotesPath {path}`, `:CodeNotesGrep {text}`, `:CodeNotesBuffer`, `:CodeNotesStatus {active|legacy|orphan}`
+- `:CodeNotesCopy`, `:CodeNotesClear` — 전체 삭제는 확인을 요구한다.
+
+기본 키맵은 `<leader>m` 아래에 있다.
+
+- `<leader>mn`: 현재 줄 또는 Visual 범위 메모 만들기
+- `<leader>mF`: 파일 메모 만들기
+- `<leader>mo`, `<leader>me`, `<leader>md`: 현재 위치 메모 보기 / 수정 / 삭제
+- `<leader>ml`, `<leader>mb`: 프로젝트 전체 / 현재 버퍼 목록
+- `<leader>mp`, `<leader>mg`, `<leader>ms`: 경로 / 본문 / 상태 검색
+- `<leader>mc`, `<leader>mC`: 프로젝트 전체 복사 / 확인 후 전체 삭제
+- `<leader>m?`: 코드 메모 키맵 도움말 popup
+
+메모는 기본적으로 프로젝트 밖의 `~/code-notes/<project-key>/notes/<id>.json`에 저장된다. `project-key`는 Git top-level(없으면 Neovim 시작 디렉터리)의 이름과 hash로 구성되며, 실제 project root도 note 데이터에 저장한다. `setup()`으로 다른 외부 경로를 지정할 수 있지만 project root 내부 경로는 거부한다.
+
+```lua
+require("code-notes").setup({
+  notes_dir = vim.fn.expand("~/code-notes"),
+})
+```
+
+줄/범위 메모는 저장 당시의 snippet과 hash로 위치를 검증한다. 원래 위치가 일치하면 `active`, 파일 내 유일한 일치 위치가 있으면 새 줄로 재배치한다. 위치가 모호하거나 달라졌으면 자동 삭제하지 않고 `legacy` 파일 메모로 전환한다. 파일이 사라지면 `orphan`으로 보존하며, Telescope에서 선택하면 이동하지 않고 popup으로 표시한다.
+
+복사 형식은 AGENT 전달용으로 다음 세 필드만 포함한다. 저장된 anchor snippet/hash 같은 원본 코드 검증 정보는 포함하지 않는다.
+
+```text
+프로젝트 상대 파일 경로
+시작라인:끝라인
+메모 내용
+```
+
+범위는 일반 줄/범위 메모에서 1-based 실제 줄 번호다. 파일·legacy 메모는 `0:0`이고, orphan은 마지막으로 신뢰한 줄 범위를 유지한다(파일 메모에서 시작한 orphan은 `0:0`). Telescope picker는 오른쪽 pane에 선택한 메모의 상태·경로·범위·본문을 미리 보여 준다. Enter로 조회/이동하고, `<C-e>`로 수정, `<C-d>`로 삭제, `<C-y>`로 다중 선택 결과 또는 현재 항목을 복사한다.
+
+조회와 수정은 같은 메모 popup을 사용한다. popup에서 내용을 바로 추가·수정한 뒤 `<C-s>`로 저장 후 닫는다. `:w`는 저장한 채 popup을 유지하고, `:x`는 저장 후 닫는다. `q`는 저장하지 않고 닫는다.
+
+개발 중 headless 검증은 실제 `~/code-notes` 대신 임시 디렉터리를 사용한다.
+
+```bash
+bash tests/test_nvim.sh
+bash tests/test_bootstrap_static.sh
+./bin/verify
+```
+
 ## 저장소에서 관리하지 않는 항목
 
 - Codex/OpenCode 로그인, OAuth, API key, MCP 인증과 기기별 비밀값
