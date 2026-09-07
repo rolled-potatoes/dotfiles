@@ -33,7 +33,7 @@ check_network() {
   curl --fail --silent --show-error --head --max-time 10 https://brew.sh/ >/dev/null || fail 'Cannot reach https://brew.sh/. Check network, proxy, VPN, or TLS, then retry.'
 }
 preflight() {
-  say '==> 1/7 Preflight'; require_apple_silicon_macos; check_command_line_tools
+  say '==> 1/8 Preflight'; require_apple_silicon_macos; check_command_line_tools
   ((VERIFY_ONLY)) || check_network
   report_pending_targets
   say "Platform: Apple Silicon macOS; CLT: $(xcode-select -p)"
@@ -51,14 +51,19 @@ activate_brew() {
   command -v brew >/dev/null || fail 'Homebrew shell environment could not be activated.'
 }
 bootstrap_homebrew() {
-  say '==> 2/7 Homebrew bootstrap'
+  say '==> 2/8 Homebrew bootstrap'
   if [[ ! -x $BREW_BIN ]]; then
     say "Homebrew is absent. Official installer will modify $BREW_PREFIX."
     if ((DRY_RUN)); then say '+ /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'; else /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; fi
   else say "Homebrew already installed: $BREW_BIN"; fi
   activate_brew; say "Homebrew active: $(command -v brew)"
 }
-install_brew_packages() { say '==> 3/7 Homebrew packages'; activate_brew; run brew bundle install --file "$DOTFILES_DIR/Brewfile" --no-upgrade; }
+install_brew_packages() { say '==> 3/8 Homebrew packages'; activate_brew; run brew bundle install --file "$DOTFILES_DIR/Brewfile" --no-upgrade; }
+bootstrap_neovim() {
+  say '==> 7/8 Neovim plugins and tools'
+  command -v nvim >/dev/null || fail 'Neovim is unavailable after Homebrew installation. Retry: brew install neovim'
+  run nvim --headless '+Lazy! restore' '+Lazy! load mason-tool-installer.nvim' '+MasonToolsInstallSync' '+lua require("config.nvim-bootstrap").install_parsers()' +qa
+}
 
 backup_file_once() {
   local path=$1 backup
@@ -78,7 +83,7 @@ replace_managed_block() {
   mv "${temp}.new" "$file"; rm -f "$temp"
 }
 configure_mise() {
-  say '==> 4/7 mise runtimes'; activate_brew; command -v mise >/dev/null || fail 'mise unavailable after Homebrew installation. Retry: brew install mise'
+  say '==> 4/8 mise runtimes'; activate_brew; command -v mise >/dev/null || fail 'mise unavailable after Homebrew installation. Retry: brew install mise'
   local node_version python_version config
   node_version="$(mise latest node)" || fail 'Could not resolve latest stable Node.js. Check network and retry.'
   python_version="$(mise latest python)" || fail 'Could not resolve latest stable Python. Check network and retry.'
@@ -92,7 +97,7 @@ configure_mise() {
   fi
 }
 configure_zsh() {
-  say '==> 5/7 zsh environment'
+  say '==> 5/8 zsh environment'
   replace_managed_block "$HOME/.zprofile" 'if [[ -x /opt/homebrew/bin/brew ]]; then
   eval "$(/opt/homebrew/bin/brew shellenv)"
 fi'
@@ -105,7 +110,7 @@ fi
 alias nvimr='"'"'nvim -R'"'"''
 }
 install_oh_my_zsh() {
-  say '==> 5/7 oh-my-zsh'
+  say '==> 5/8 oh-my-zsh'
   [[ -d $HOME/.oh-my-zsh ]] && { say "oh-my-zsh already present: $HOME/.oh-my-zsh"; return; }
   say 'Install official oh-my-zsh (non-interactive; existing .zshrc preserved).'
   if ((DRY_RUN)); then say '+ KEEP_ZSHRC=yes RUNZSH=no CHSH=no sh -c "curl .../ohmyzsh/.../install.sh" "" --unattended --keep-zshrc'; else KEEP_ZSHRC=yes RUNZSH=no CHSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" '' --unattended --keep-zshrc; fi
@@ -127,7 +132,7 @@ stow_package() {
   fi
 }
 apply_dotfiles() {
-  say '==> 6/7 dotfiles'; local config="$DOTFILES_DIR/opencode/.config/opencode"
+  say '==> 6/8 dotfiles'; local config="$DOTFILES_DIR/opencode/.config/opencode"
   if [[ ! -f $config/opencode.json && -f $config/opencode.json.example ]]; then say "Create machine-local OpenCode config: $config/opencode.json"; run cp "$config/opencode.json.example" "$config/opencode.json"; fi
   run mkdir -p "$HOME/.config/opencode" "$HOME/.agents/references" "$HOME/.agents/scripts"
   local package; for package in opencode agents .codex; do stow_package "$package" "$HOME"; done
@@ -144,12 +149,15 @@ remove_retired_codex_command() {
   if [[ $link == *dotfiles/codex/.local/bin/codex-token-usage ]]; then say "Remove retired Codex usage link: $legacy -> $link"; run rm "$legacy"; else warn "Retired command name points elsewhere; leaving untouched: $legacy -> $link"; fi
 }
 verify_command() { command -v "$1" >/dev/null && say "PASS command: $1 ($(command -v "$1"))" || { warn "MISSING command: $1"; return 1; }; }
+verify_app() { [[ -d "/Applications/$1.app" ]] && say "PASS app: $1 (/Applications/$1.app)" || { warn "MISSING app: $1"; return 1; }; }
 verify_environment() {
-  say '==> 7/7 verification'; require_apple_silicon_macos; activate_brew; local failed=0 cmd
-  for cmd in brew mise node python zsh rg nvim ghostty lazygit codex opencode; do verify_command "$cmd" || failed=1; done
+  say '==> 8/8 verification'; require_apple_silicon_macos; activate_brew; local failed=0 cmd
+  for cmd in brew mise node python zsh rg nvim lazygit codex opencode; do verify_command "$cmd" || failed=1; done
+  verify_app Ghostty || failed=1
   mise current node >/dev/null 2>&1 || { warn 'mise Node.js is not active'; failed=1; }; mise current python >/dev/null 2>&1 || { warn 'mise Python is not active'; failed=1; }
   if /bin/zsh -lic 'command -v brew >/dev/null && command -v mise >/dev/null && command -v node >/dev/null && command -v python >/dev/null'; then say 'PASS new login zsh: brew, mise, node, python'; else warn 'New login zsh could not initialize required commands'; failed=1; fi
   if /bin/zsh -ic 'command -v brew >/dev/null && command -v mise >/dev/null && command -v node >/dev/null && command -v python >/dev/null'; then say 'PASS new interactive zsh: brew, mise, node, python'; else warn 'New interactive zsh could not initialize required commands'; failed=1; fi
+  if DOTFILES_NVIM_VERIFY=1 nvim --headless '+lua require("config.nvim-bootstrap").verify()' +qa; then say 'PASS Neovim plugins, parsers, and Mason tools'; else warn 'Neovim plugins, parsers, or Mason tools are incomplete'; failed=1; fi
   [[ ! -e $DOTFILES_DIR/codex/.local/bin/codex-token-usage ]] || { warn 'Retired Codex usage implementation remains'; failed=1; }
   if ! command -v rg >/dev/null; then
     warn 'Cannot inspect retired references because rg is unavailable'; failed=1

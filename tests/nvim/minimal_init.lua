@@ -1,5 +1,6 @@
 local root = assert(vim.env.CODE_NOTES_NVIM_DIR, "CODE_NOTES_NVIM_DIR is required")
 vim.opt.runtimepath:append(root .. "/nvim")
+vim.opt.swapfile = false
 vim.g.mapleader = " "
 require("code-review").setup()
 require("code-notes").setup({

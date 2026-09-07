@@ -30,13 +30,14 @@ cd ~/dotfiles
 4. **mise** — `mise latest`로 당시의 안정 버전을 확인해 전역 `node`와 `python`을 명시 버전으로 고정한다. 프로젝트의 `mise.toml`, `.tool-versions`, 기타 런타임 설정은 변경하지 않으며 해당 프로젝트 설정이 우선한다.
 5. **zsh 및 oh-my-zsh** — `.zprofile`과 `.zshrc`의 작은 marker 블록으로 Homebrew와 mise를 활성화한다. oh-my-zsh는 Homebrew가 아닌 공식 설치기를 `--unattended --keep-zshrc`로 실행하므로 기존 `.zshrc`를 교체하지 않고, 기본 로그인 셸도 변경하지 않는다.
 6. **dotfile 연결** — GNU Stow로 OpenCode, agent 설정, Codex 전역 지침, Ghostty, Neovim, Karabiner 설정을 연결한다.
-7. **검증** — 현재 셸과 새 login zsh에서 명령과 mise runtime/PATH를 점검한다.
+7. **Neovim 복원** — lazy.nvim 잠금 파일의 플러그인 revision을 복원하고, Mason 도구와 Treesitter parser 설치가 완료될 때까지 기다린다.
+8. **검증** — 현재 셸과 새 login zsh, Neovim parser와 Mason 포매터를 점검한다.
 
 ## Homebrew 관리 항목
 
 다음은 Homebrew로 관리한다.
 
-- CLI: `ripgrep`, `neovim`, `zsh`, `opencode`, `lazygit`, `mise`, `stow`, `git`
+- CLI: `ripgrep`, `neovim`, `tree-sitter-cli`, `zsh`, `opencode`, `lazygit`, `mise`, `stow`, `git`
 - 앱/cask: `ghostty`, `codex`, `karabiner-elements`, `font-cascadia-code`, `font-d2coding`
 
 Codex는 Homebrew formula가 아니라 cask다. Ghostty와 Karabiner는 GUI 앱이므로 설치 뒤 최초 실행·권한 부여는 사용자가 해야 한다. Codex/OpenCode의 로그인, OAuth, API key와 MCP 인증도 자동화하지 않는다.
@@ -65,7 +66,7 @@ Codex는 Homebrew formula가 아니라 cask다. Ghostty와 Karabiner는 GUI 앱�
 ./bin/verify
 ```
 
-성공 시 `brew`, `mise`, `node`, `python`, `zsh`, `rg`, `nvim`, `ghostty`, `lazygit`, `codex`, `opencode`와 새 login zsh를 확인한다.
+성공 시 `brew`, `mise`, `node`, `python`, `zsh`, `rg`, `nvim`, `lazygit`, `codex`, `opencode`, 새 login zsh, Treesitter parser와 Mason 포매터를 확인한다. Ghostty는 CLI 대신 `/Applications/Ghostty.app` bundle 존재를 확인한다.
 
 - 네트워크 오류: VPN/프록시/TLS를 확인한 뒤 `./bin/bootstrap`을 재실행한다.
 - Homebrew 오류: `/opt/homebrew/bin/brew doctor`를 실행한 뒤 다시 시도한다.
@@ -108,7 +109,7 @@ require("code-notes").setup({
 })
 ```
 
-줄/범위 메모는 저장 당시의 snippet과 hash로 위치를 검증한다. 원래 위치가 일치하면 `active`, 파일 내 유일한 일치 위치가 있으면 새 줄로 재배치한다. 위치가 모호하거나 달라졌으면 자동 삭제하지 않고 `legacy` 파일 메모로 전환한다. 파일이 사라지면 `orphan`으로 보존하며, Telescope에서 선택하면 이동하지 않고 popup으로 표시한다.
+줄/범위 메모는 저장 당시의 snippet으로 위치를 검증한다. 원래 위치가 일치하면 `active`, 파일 내 유일한 일치 위치가 있으면 새 줄로 재배치한다. 위치가 모호하거나 달라졌으면 자동 삭제하지 않고 `legacy` 파일 메모로 전환한다. 파일이 사라지면 `orphan`으로 보존하며, Telescope에서 선택하면 이동하지 않고 popup으로 표시한다. 새로 저장하거나 수정한 메모는 파일별 index를 함께 유지해 이후 현재 버퍼에서는 관련 메모만 읽는다. 기존 메모는 다음 저장 전까지 기존 방식으로 읽으며 자동으로 저장소를 바꾸지 않는다.
 
 복사 형식은 AGENT 전달용으로 다음 세 필드만 포함한다. 저장된 anchor snippet/hash 같은 원본 코드 검증 정보는 포함하지 않는다.
 

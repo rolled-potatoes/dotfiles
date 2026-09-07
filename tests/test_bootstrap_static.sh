@@ -3,6 +3,13 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 bash -n "$ROOT/install.sh" "$ROOT/bin/bootstrap" "$ROOT/bin/verify" "$ROOT/scripts/bootstrap-lib.sh"
 for expected in ripgrep neovim ghostty zsh codex opencode lazygit mise; do rg -qx "(brew|cask) \"$expected\"" "$ROOT/Brewfile"; done
+rg -Fqx 'brew "tree-sitter-cli"' "$ROOT/Brewfile"
+rg -Fqx "bootstrap_neovim" "$ROOT/bin/bootstrap"
+rg -Fq "MasonToolsInstallSync" "$ROOT/scripts/bootstrap-lib.sh"
+rg -Fq 'config.nvim-bootstrap").install_parsers' "$ROOT/scripts/bootstrap-lib.sh"
+rg -Fq 'verify_app Ghostty' "$ROOT/scripts/bootstrap-lib.sh"
+rg -Fq '"javascriptreact"' "$ROOT/nvim/lua/plugins/tresitter.lua"
+rg -Fq 'ft = { "html", "javascript", "javascriptreact", "typescript", "typescriptreact", "markdown" }' "$ROOT/nvim/lua/plugins/autotag.lua"
 ! test -e "$ROOT/codex/.local/bin/codex-token-usage"
 ! test -e "$ROOT/tests/test_codex_token_usage.py"
 ! rg -n -i 'codex[-_ ]?(token[-_ ]?)?usage' "$ROOT" -g '!/.git/**' -g '!scripts/bootstrap-lib.sh' -g '!tests/test_bootstrap_static.sh'

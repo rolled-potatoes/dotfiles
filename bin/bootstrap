@@ -33,6 +33,7 @@ configure_mise
 install_oh_my_zsh
 configure_zsh
 apply_dotfiles
+bootstrap_neovim
 install_opencode_plugins
 remove_retired_codex_command
 if ((DRY_RUN)); then
