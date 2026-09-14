@@ -12,6 +12,21 @@ return {
 		{ "<C-n>t", "<cmd>NvimTreeToggle<CR>", desc = "파일 트리 토글" },
 		{ "<C-n>f", "<cmd>NvimTreeFindFile<CR>", desc = "현재 파일을 트리에서 찾기" },
 	},
+	init = function()
+		vim.api.nvim_create_autocmd("VimEnter", {
+			group = vim.api.nvim_create_augroup("nvim_tree_directory_start", { clear = true }),
+			callback = function()
+				local path = vim.api.nvim_buf_get_name(0)
+				local stat = path ~= "" and vim.uv.fs_stat(path) or nil
+				if stat and stat.type == "directory" then
+					require("lazy").load({ plugins = { "nvim-tree.lua" } })
+					vim.schedule(function()
+						vim.cmd("NvimTreeOpen")
+					end)
+				end
+			end,
+		})
+	end,
 	opts = function()
 		local function on_attach(bufnr)
 			local api = require("nvim-tree.api")

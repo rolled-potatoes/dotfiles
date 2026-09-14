@@ -77,12 +77,14 @@ assert(changed and line_note.status == "active" and line_note.start_line == 3, "
 vim.fn.writefile({ "local one = 1", "local two = 2", "local changed = 2", "local two = 2", "local three = 3", "return one" }, file)
 anchor.validate(line_note, project.root)
 assert(line_note.status == "legacy" and line_note.start_line == 0 and line_note.end_line == 0, "ambiguous anchor becomes legacy")
+assert(not anchor.validate(line_note, project.root), "unchanged legacy notes are not rewritten")
 
 vim.fn.delete(file)
 anchor.validate(line_note, project.root)
 assert(line_note.status == "orphan" and line_note.start_line == 3 and line_note.end_line == 3, "legacy orphan keeps its last trusted range")
 anchor.validate(file_note, project.root)
 assert(file_note.status == "orphan", "missing file becomes orphan")
+assert(not anchor.validate(file_note, project.root), "unchanged orphan notes are not rewritten")
 assert(project.key == project_module.resolve(project_dir).key, "project key is stable")
 
 local outside = vim.fn.tempname()
@@ -93,6 +95,7 @@ vim.fn.delete(outside, "rf")
 
 storage.delete(notes_dir, project, range_note.id)
 assert(#storage.list(notes_dir, project) == 2, "delete removes one note")
+assert(#storage.list_for_file(notes_dir, project, "src/sample.lua") == 2, "file index limits note reads to one file")
 storage.clear(notes_dir, project)
 assert(#storage.list(notes_dir, project) == 0, "clear removes project notes")
 

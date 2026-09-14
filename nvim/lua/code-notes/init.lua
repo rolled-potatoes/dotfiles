@@ -37,8 +37,15 @@ local function save(note)
 end
 
 local function validate_notes(notes)
+  local files = {}
   for _, note in ipairs(notes) do
-    if anchor.validate(note, project.root) then
+    local source = files[note.relative_path]
+    if source == nil then
+      local path = vim.fs.joinpath(project.root, note.relative_path)
+      source = vim.uv.fs_stat(path) and vim.fn.readfile(path) or false
+      files[note.relative_path] = source
+    end
+    if anchor.validate(note, source) then
       save(note)
     end
   end
@@ -77,7 +84,7 @@ local function refresh_buffer(bufnr)
   if not relative then
     return
   end
-  for _, note in ipairs(M.notes()) do
+  for _, note in ipairs(validate_notes(storage.list_for_file(config.notes_dir, project, relative))) do
     if note.status == "active" and note.relative_path == relative then
       local line = note.kind == "file" and 0 or math.max(0, note.start_line - 1)
       vim.api.nvim_buf_set_extmark(bufnr, namespace, line, 0, {

@@ -31,9 +31,6 @@ function M.create(lines, start_line, end_line)
   local snippet = slice(lines, start_line, end_line)
   return {
     snippet = snippet,
-    hash = vim.fn.sha256(table.concat(snippet, "\n")),
-    before_hash = vim.fn.sha256(table.concat(slice(lines, math.max(1, start_line - 2), start_line - 1), "\n")),
-    after_hash = vim.fn.sha256(table.concat(slice(lines, end_line + 1, math.min(#lines, end_line + 2)), "\n")),
   }
 end
 
@@ -53,20 +50,29 @@ local function unique_match(lines, snippet)
   return found
 end
 
-function M.validate(note, project_root)
-  local path = vim.fs.joinpath(project_root, note.relative_path)
-  local lines = lines_for(path)
+function M.validate(note, source)
+  local lines
+  if source == false then
+    lines = nil
+  elseif type(source) == "table" then
+    lines = source
+  else
+    lines = lines_for(vim.fs.joinpath(source, note.relative_path))
+  end
   if not lines then
+    local changed = note.status ~= "orphan"
     if note.status == "legacy" and note.last_start_line then
+      changed = changed or note.start_line ~= note.last_start_line or note.end_line ~= note.last_end_line
       note.start_line = note.last_start_line
       note.end_line = note.last_end_line
     end
     note.status = "orphan"
-    return true
+    return changed
   end
   if note.kind == "file" then
+    local changed = note.status ~= "active"
     note.status = "active"
-    return false
+    return changed
   end
 
   local anchor = note.anchor
@@ -90,12 +96,16 @@ function M.validate(note, project_root)
     return true
   end
 
-  note.last_start_line = note.last_start_line or note.start_line
-  note.last_end_line = note.last_end_line or note.end_line
+  local last_start_line = note.last_start_line or note.start_line
+  local last_end_line = note.last_end_line or note.end_line
+  local changed = note.status ~= "legacy" or note.start_line ~= 0 or note.end_line ~= 0
+    or note.last_start_line ~= last_start_line or note.last_end_line ~= last_end_line
+  note.last_start_line = last_start_line
+  note.last_end_line = last_end_line
   note.start_line = 0
   note.end_line = 0
   note.status = "legacy"
-  return true
+  return changed
 end
 
 return M
