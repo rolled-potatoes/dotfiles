@@ -101,11 +101,36 @@ assert(pcall(notes.setup, { notes_dir = alternate_notes_dir }), "setup accepts a
 local rejected = pcall(notes.setup, { notes_dir = vim.fs.joinpath(project.root, "notes-inside-project") })
 assert(not rejected, "setup rejects a notes directory inside the project")
 
+local discarded_normal
+ui.edit({ status = "active", content = "before" }, function(content)
+  discarded_normal = content
+end, function() end)
+local popup_buffer = vim.api.nvim_get_current_buf()
+local popup_window = vim.api.nvim_get_current_win()
+vim.api.nvim_buf_set_lines(popup_buffer, 0, -1, false, { "discarded from normal mode" })
+vim.api.nvim_feedkeys(vim.keycode("<Esc>"), "xt", false)
+assert(not vim.api.nvim_win_is_valid(popup_window), "normal Esc closes the editable popup")
+assert(not vim.api.nvim_buf_is_valid(popup_buffer), "normal Esc wipes the editable popup buffer")
+assert(discarded_normal == nil, "normal Esc does not save the edited note")
+
+local discarded_insert
+ui.edit({ status = "active", content = "before" }, function(content)
+  discarded_insert = content
+end, function() end)
+popup_buffer = vim.api.nvim_get_current_buf()
+popup_window = vim.api.nvim_get_current_win()
+vim.api.nvim_buf_set_lines(popup_buffer, 0, -1, false, { "discarded from insert mode" })
+vim.cmd.startinsert()
+vim.api.nvim_feedkeys(vim.keycode("<Esc>"), "xt", false)
+assert(not vim.api.nvim_win_is_valid(popup_window), "insert Esc closes the editable popup")
+assert(not vim.api.nvim_buf_is_valid(popup_buffer), "insert Esc wipes the editable popup buffer")
+assert(discarded_insert == nil, "insert Esc does not save the edited note")
+
 local popup_content
 ui.edit({ status = "active", content = "before" }, function(content)
   popup_content = content
 end, function() end)
-local popup_buffer = vim.api.nvim_get_current_buf()
+popup_buffer = vim.api.nvim_get_current_buf()
 vim.api.nvim_buf_set_lines(popup_buffer, 0, -1, false, { "saved with write" })
 vim.cmd.write()
 assert(popup_content == "saved with write", "popup :write saves the note")

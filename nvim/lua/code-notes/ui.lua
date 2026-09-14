@@ -25,20 +25,20 @@ local function popup(title, content, editable, mappings)
     title = " " .. title .. " ",
     title_pos = "center",
   })
-  for lhs, callback in pairs(mappings or {}) do
-    vim.keymap.set("n", lhs, callback, { buffer = buffer, silent = true, desc = "코드 메모 " .. lhs })
-  end
-  vim.keymap.set("n", "q", function()
+  local function close()
     if vim.api.nvim_win_is_valid(window) then
       vim.api.nvim_win_close(window, true)
     end
-  end, { buffer = buffer, silent = true, desc = "코드 메모 팝업 닫기" })
-  return buffer, window
+  end
+  for lhs, callback in pairs(mappings or {}) do
+    vim.keymap.set("n", lhs, callback, { buffer = buffer, silent = true, desc = "코드 메모 " .. lhs })
+  end
+  vim.keymap.set("n", "q", close, { buffer = buffer, silent = true, desc = "코드 메모 팝업 닫기" })
+  return buffer, window, close
 end
 
 local function editable_popup(title, note, on_save, on_delete)
-  local buffer, window
-  buffer, window = popup(title, note.content, true)
+  local buffer, window, close = popup(title, note.content, true)
   local function save()
     local content = table.concat(vim.api.nvim_buf_get_lines(buffer, 0, -1, false), "\n")
     on_save(content)
@@ -50,16 +50,13 @@ local function editable_popup(title, note, on_save, on_delete)
   })
   vim.keymap.set({ "n", "i" }, "<C-s>", function()
     save()
-    if vim.api.nvim_win_is_valid(window) then
-      vim.api.nvim_win_close(window, true)
-    end
+    close()
   end, { buffer = buffer, silent = true, desc = "코드 메모 저장" })
+  vim.keymap.set({ "n", "i" }, "<Esc>", close, { buffer = buffer, silent = true, desc = "코드 메모 저장 없이 닫기" })
   vim.keymap.set("n", "<C-d>", function()
     if vim.fn.confirm("이 메모를 삭제할까요?", "&삭제\n&취소", 2) == 1 then
       on_delete()
-      if vim.api.nvim_win_is_valid(window) then
-        vim.api.nvim_win_close(window, true)
-      end
+      close()
     end
   end, { buffer = buffer, silent = true, desc = "코드 메모 삭제" })
 end

@@ -240,7 +240,7 @@ function M.open_picker(options)
 end
 
 function M.clear()
-  if vim.fn.confirm("현재 프로젝트의 모든 코드 메모를 삭제할까요?", "&삭제\n&취소", 2) == 1 then
+  if vim.fn.confirm("현재 프로젝트의 모든 코드 메모를 삭제할까요?", "&삭제\n&취소", 1) == 1 then
     storage.clear(config.notes_dir, project)
     refresh_current()
     vim.notify("현재 프로젝트의 코드 메모를 삭제했습니다", vim.log.levels.INFO)
