@@ -11,9 +11,9 @@ Use this skill only by explicit invocation. It is a project-local bootstrapper: 
 
 1. Run `git status --short` before any write. Preserve unrelated user changes.
 2. Identify the Git/project root.
-3. Ask the user to confirm the target path, the proposed `.agents/work/<task-id>/` evidence location, and the kebab-case task ID. Do not create files in this step.
+3. Infer the target path, `.agents/work/<task-id>/` evidence location, and kebab-case task ID from the request when they are unambiguous. Ask only for an unresolved choice. Do not create files in this step.
 4. Read [the discovery guide](references/discovery.md), gather only non-secret evidence, and classify the result as a new harness, partial extension, existing-harness update, or decision required.
-5. Before changing code, documentation, configuration, links, or scripts, present As-Is, To-Be, files, compatibility risks, ownership, verification, and the expected application flow. Wait for explicit approval.
+5. Before changing code, documentation, configuration, links, or scripts, present only the As-Is, To-Be, files, material compatibility risks, verification, and expected application flow needed to review the change. Wait for explicit approval unless the user has already approved that concrete scope.
 
 ## Build or update after approval
 

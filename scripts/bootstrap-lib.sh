@@ -111,7 +111,10 @@ install_oh_my_zsh() {
   if ((DRY_RUN)); then say '+ KEEP_ZSHRC=yes RUNZSH=no CHSH=no sh -c "curl .../ohmyzsh/.../install.sh" "" --unattended --keep-zshrc'; else KEEP_ZSHRC=yes RUNZSH=no CHSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" '' --unattended --keep-zshrc; fi
 }
 stow_package() {
-  local package=$1 target=$2 source="$DOTFILES_DIR/$package"
+  local package=$1 target=$2 mode=${3:-} source
+  source="$DOTFILES_DIR/$package"
+  local -a stow_options=(--restow "${STOW_IGNORE_ARGS[@]}")
+  [[ $mode == no-folding ]] && stow_options+=(--no-folding)
   [[ -d $source ]] || return 0
   if [[ -L $target ]]; then fail "$target is linked elsewhere. It will not be replaced; inspect and move it manually."; fi
   if [[ -e $target && ! -d $target ]]; then
@@ -121,16 +124,48 @@ stow_package() {
   fi
   run mkdir -p "$target"; say "Stow $package into $target"
   if ((DRY_RUN)); then
-    run stow --restow "${STOW_IGNORE_ARGS[@]}" --target "$target" --dir "$DOTFILES_DIR" "$package"
-  elif ! stow --restow "${STOW_IGNORE_ARGS[@]}" --target "$target" --dir "$DOTFILES_DIR" "$package"; then
+    run stow "${stow_options[@]}" --target "$target" --dir "$DOTFILES_DIR" "$package"
+  elif ! stow "${stow_options[@]}" --target "$target" --dir "$DOTFILES_DIR" "$package"; then
     fail "Stow conflict while linking $package. No files were overwritten; inspect the reported path, back it up, then rerun ./bin/bootstrap."
   fi
+}
+canonical_path() {
+  local path=$1
+  (cd -P "$(dirname "$path")" && printf '%s/%s\n' "$PWD" "$(basename "$path")")
+}
+linked_target_path() {
+  local path=$1 link base
+  link="$(readlink "$path")" || return 1
+  if [[ $link == /* ]]; then
+    canonical_path "$link"
+  else
+    base="$(cd -P "$(dirname "$path")" && pwd)"
+    canonical_path "$base/$link"
+  fi
+}
+remove_legacy_codex_links() {
+  local legacy expected target
+  for legacy in "$HOME/AGENTS.md" "$HOME/agents"; do
+    [[ -L $legacy ]] || continue
+    if [[ $legacy == */AGENTS.md ]]; then expected="$(canonical_path "$DOTFILES_DIR/.codex/AGENTS.md")"; else expected="$(canonical_path "$DOTFILES_DIR/.codex/agents")"; fi
+    target="$(linked_target_path "$legacy")" || { warn "Cannot resolve legacy Codex link; leaving untouched: $legacy"; continue; }
+    if [[ $target == "$expected" ]]; then
+      say "Remove legacy Codex link: $legacy -> $target"
+      run rm "$legacy"
+    else
+      warn "Legacy Codex path points elsewhere; leaving untouched: $legacy -> $target"
+    fi
+  done
 }
 apply_dotfiles() {
   say '==> 6/7 dotfiles'; local config="$DOTFILES_DIR/opencode/.config/opencode"
   if [[ ! -f $config/opencode.json && -f $config/opencode.json.example ]]; then say "Create machine-local OpenCode config: $config/opencode.json"; run cp "$config/opencode.json.example" "$config/opencode.json"; fi
-  run mkdir -p "$HOME/.config/opencode" "$HOME/.agents/references" "$HOME/.agents/scripts"
-  local package; for package in opencode agents .codex; do stow_package "$package" "$HOME"; done
+  run mkdir -p "$HOME/.config/opencode" "$HOME/.agents/references" "$HOME/.agents/scripts" "$HOME/.codex"
+  local package; for package in opencode agents; do stow_package "$package" "$HOME"; done
+  # Keep machine-specific Codex configuration in ~/.codex.  This package has
+  # only shared instructions and agent roles, so its contents belong below it.
+  stow_package .codex "$HOME/.codex" no-folding
+  remove_legacy_codex_links
   stow_package ghostty "$HOME/.config/ghostty"; stow_package nvim "$HOME/.config/nvim"; stow_package karabiner "$HOME/.config/karabiner"
 }
 install_opencode_plugins() {

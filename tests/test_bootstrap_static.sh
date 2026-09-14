@@ -28,3 +28,46 @@ test "$(rg -Fxc "alias nvimr='nvim -R'" "$HOME/.zshrc")" -eq 1
 rg -Fqx 'export USER_SETTING=kept' "$HOME/.zshrc"
 rg -Fqx "$MANAGED_BEGIN" "$HOME/.zshrc"
 rg -Fqx "$MANAGED_END" "$HOME/.zshrc"
+
+# The shared Codex package must populate ~/.codex without replacing the
+# machine-local config.toml or putting instructions in the home directory.
+mkdir -p "$HOME/.codex"
+printf '%s\n' 'model = "machine-local-model"' > "$HOME/.codex/config.toml"
+stow_package .codex "$HOME/.codex" no-folding
+test -L "$HOME/.codex/AGENTS.md"
+test ! -L "$HOME/.codex/agents"
+test -L "$HOME/.codex/agents/explorer.toml"
+test -L "$HOME/.codex/agents/verifier.toml"
+test -L "$HOME/.codex/agents/worker.toml"
+test ! -e "$HOME/AGENTS.md"
+rg -Fqx 'model = "machine-local-model"' "$HOME/.codex/config.toml"
+printf '%s\n' 'name = "machine-local-role"' > "$HOME/.codex/agents/local.toml"
+stow_package .codex "$HOME/.codex" no-folding
+rg -Fqx 'model = "machine-local-model"' "$HOME/.codex/config.toml"
+rg -Fqx 'name = "machine-local-role"' "$HOME/.codex/agents/local.toml"
+
+# Earlier installer versions put this package directly in HOME. Remove only
+# links that resolve to the matching dotfiles source.
+ln -s "$ROOT/.codex/AGENTS.md" "$HOME/AGENTS.md"
+ln -s "$ROOT/.codex/agents" "$HOME/agents"
+remove_legacy_codex_links
+test ! -e "$HOME/AGENTS.md"
+test ! -e "$HOME/agents"
+ln -s /tmp/unrelated-command "$HOME/AGENTS.md"
+remove_legacy_codex_links
+test -L "$HOME/AGENTS.md"
+rm "$HOME/AGENTS.md"
+
+# A regular machine-local role file remains a conflict; stow must not replace
+# it even when the shared package is otherwise valid.
+conflict_home="$(mktemp -d)"
+trap 'rm -rf "$temporary_home" "$conflict_home"' EXIT
+mkdir -p "$conflict_home/.codex/agents"
+printf '%s\n' '# personal instructions' > "$conflict_home/.codex/AGENTS.md"
+printf '%s\n' 'name = "personal-explorer"' > "$conflict_home/.codex/agents/explorer.toml"
+if stow --restow --no-folding --target "$conflict_home/.codex" --dir "$ROOT" .codex; then
+  printf '%s\n' 'expected a role-file conflict' >&2
+  exit 1
+fi
+rg -Fqx '# personal instructions' "$conflict_home/.codex/AGENTS.md"
+rg -Fqx 'name = "personal-explorer"' "$conflict_home/.codex/agents/explorer.toml"

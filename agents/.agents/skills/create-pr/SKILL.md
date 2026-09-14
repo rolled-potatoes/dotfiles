@@ -5,6 +5,8 @@ description: Writes pull request descriptions. Use when creating a PR, writing a
 
 When writing a PR description:
 
+사용자가 PR 생성까지 명시적으로 요청하지 않았다면 제목과 설명 초안만 작성하고 원격 PR을 만들거나 수정하지 않는다.
+
 1. 현재 작업 브랜치에서 HEAD 까지 변경된 사항을 확인한다.
 2. Write a description following this format:
 
@@ -48,5 +50,4 @@ prefix는 아래를 사용한다.
 - 문제를 해결하기 위해서 어떤 작업을 했는지 작성한다.
 - 변경된 사항이 어떤 영향을 미치는지 작성한다.
 - 코드리뷰어가 주의 깊게 살펴봐야 하는 부분이 있다면 작성한다.
-
 

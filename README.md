@@ -29,7 +29,7 @@ cd ~/dotfiles
 3. **Homebrew 패키지** — [Brewfile](/Users/rolled-potatoes/dotfiles/Brewfile)의 CLI/cask를 `brew bundle install --no-upgrade`로 설치한다. Node.js/Python은 Brewfile에 넣지 않는다.
 4. **mise** — `mise latest`로 당시의 안정 버전을 확인해 전역 `node`와 `python`을 명시 버전으로 고정한다. 프로젝트의 `mise.toml`, `.tool-versions`, 기타 런타임 설정은 변경하지 않으며 해당 프로젝트 설정이 우선한다.
 5. **zsh 및 oh-my-zsh** — `.zprofile`과 `.zshrc`의 작은 marker 블록으로 Homebrew와 mise를 활성화한다. oh-my-zsh는 Homebrew가 아닌 공식 설치기를 `--unattended --keep-zshrc`로 실행하므로 기존 `.zshrc`를 교체하지 않고, 기본 로그인 셸도 변경하지 않는다.
-6. **dotfile 연결** — GNU Stow로 OpenCode, agent 설정, Codex 전역 지침, Ghostty, Neovim, Karabiner 설정을 연결한다.
+6. **dotfile 연결** — GNU Stow로 OpenCode, agent 설정, Codex 공통 지침·역할, Ghostty, Neovim, Karabiner 설정을 연결한다. Codex의 개인 설정은 연결하지 않는다.
 7. **검증** — 현재 셸과 새 login zsh에서 명령과 mise runtime/PATH를 점검한다.
 
 ## Homebrew 관리 항목
@@ -50,6 +50,7 @@ Codex는 Homebrew formula가 아니라 cask다. Ghostty와 Karabiner는 GUI 앱�
 - 일반 파일 또는 다른 위치를 향한 심볼릭 링크는 덮어쓰지 않고 중단한다. 파일 충돌을 검토한 뒤 `--backup`으로 실행하면 백업한 다음 교체할 수 있다.
 - 기존 `~/.oh-my-zsh`는 재설치하지 않는다. 기존 `.zshrc`는 공식 installer의 `--keep-zshrc`로 보존한다.
 - 과거 Codex 보조 명령 링크는 이 저장소의 과거 구현을 가리킬 때만 제거한다. 다른 명령을 가리키면 경고만 내고 보존한다.
+- Codex 공통 파일은 `~/.codex/AGENTS.md`와 `~/.codex/agents/`에만 연결한다. `~/.codex/config.toml`과 기존 역할 파일은 덮어쓰지 않으며, 충돌하면 변경 없이 중단한다.
 
 충돌을 직접 해결한 뒤에는 같은 명령을 재실행한다.
 
@@ -132,10 +133,20 @@ bash tests/test_bootstrap_static.sh
 
 ## 저장소에서 관리하지 않는 항목
 
+- `~/.codex/config.toml`의 기본 모델, 추론 수준, 서비스 tier, 계획 모드와 하위 agent 기본값
 - Codex/OpenCode 로그인, OAuth, API key, MCP 인증과 기기별 비밀값
+- Codex의 프로젝트 신뢰 설정, 로컬 경로, 캐시·세션·로그와 기기별 role override
 - `opencode.json`의 개인 provider/model 선택과 OpenCode runtime 생성 파일
 - 프로젝트별 언어 runtime 버전
 - oh-my-zsh theme/plugin 선택, 기본 로그인 셸 변경
 - Karabiner의 `automatic_backups`
 
 이전 Codex 보조 명령과 저장소 구현은 더 이상 관리하지 않는다.
+
+## Codex 공통 설정과 개인 설정
+
+이 저장소는 공통 작업 방식과 역할만 제공한다. `.codex/AGENTS.md`는 메인 agent의 요구사항·권한·통합 책임과 `explorer`, `worker`, `verifier`의 역할 경계를 정의한다. 각 역할의 model과 reasoning effort는 정의하지 않는다.
+
+기본 model·effort는 각 머신의 `~/.codex/config.toml`에서 선택한다. 일반 작업은 해당 머신의 기본 설정을 사용하고, `create-prompt`로 여러 저장소 계약이나 아키텍처 판단을 위한 계획을 만들 때는 필요하면 작업별로 high reasoning을 선택한다. 계획 모드를 사용하지 않는 경우에는 plan mode 설정을 관리하거나 동기화할 필요가 없다.
+
+새 공통 role 파일이 기존 `~/.codex/agents/*.toml`과 충돌하면 bootstrap은 중단한다. 기존 role의 model·effort와 개인 지침을 보존한 뒤, 공통 역할 지침을 병합하거나 백업한 다음 다시 실행한다. `agents` 디렉터리는 파일별로 연결해 개인 role 파일을 추가해도 저장소에 유입되지 않는다. `~/.codex` 전체를 심볼릭 링크하지 않는다.
