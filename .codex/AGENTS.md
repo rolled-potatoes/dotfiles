@@ -10,6 +10,5 @@
 - repository 도구가 필요 없는 단순 대화나 판단만 메인이 직접 처리한다. repository 작업은 역할에 맞는 agent에 위임한다.
 - 사용자 결정, 권한 승인, 외부·파괴적 작업, 최종 통합과 완료 판단은 메인이 직접 처리한다.
 
-## Node.js
-
-로컬 Node.js 버전은 `mise`로 관리한다. 프로젝트에서 지정한 버전이 필요하면 `mise exec` 또는 `mise use --shell`로 현재 실행 범위에만 적용한다.
+## mise 
+로컬 머신에서 node, python, jdk 등 버전 관리가 필요한건 모두 mise를 경유해서 시도한다. 프로젝트에서 지정한 버전이 필요하면 `mise exec` 또는 `mise use --shell`로 현재 실행 범위에만 적용한다.
