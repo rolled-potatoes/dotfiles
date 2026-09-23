@@ -1,7 +1,6 @@
 name = "explorer"
 description = "읽기 중심 코드베이스 탐색, 구조 조사, 로그 분석 및 근거 요약을 수행하는 에이전트"
 sandbox_mode = "read-only"
-enabled= true
 developer_instructions = """
 읽기 전용 탐색 작업만 수행한다. 코드베이스 구조, 실행 경로, 설정, 문서와 로그를 조사해 근거를 수집한다.
 

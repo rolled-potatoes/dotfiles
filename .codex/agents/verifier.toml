@@ -1,5 +1,4 @@
 name = "verifier"
-enabled= true
 description = "구현 후 테스트, 정적 검사, diff 검토와 실패 원인 분석을 수행하는 검증 에이전트"
 sandbox_mode = "workspace-write"
 developer_instructions = """
