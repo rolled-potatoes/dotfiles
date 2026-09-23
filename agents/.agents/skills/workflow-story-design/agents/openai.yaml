@@ -1,0 +1,6 @@
+interface:
+  display_name: "Story·작업 설계"
+  short_description: "Epic을 계약·인수조건·실행 태스크로 나눕니다"
+  default_prompt: "Use $workflow-story-design to turn the approved epic into reviewable stories and subtasks."
+policy:
+  allow_implicit_invocation: true

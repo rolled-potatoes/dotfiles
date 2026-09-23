@@ -29,7 +29,7 @@ cd ~/dotfiles
 3. **Homebrew 패키지** — [Brewfile](/Users/rolled-potatoes/dotfiles/Brewfile)의 CLI/cask를 `brew bundle install --no-upgrade`로 설치한다. Node.js/Python은 Brewfile에 넣지 않는다.
 4. **mise** — `mise latest`로 당시의 안정 버전을 확인해 전역 `node`와 `python`을 명시 버전으로 고정한다. 프로젝트의 `mise.toml`, `.tool-versions`, 기타 런타임 설정은 변경하지 않으며 해당 프로젝트 설정이 우선한다.
 5. **zsh 및 oh-my-zsh** — `.zprofile`과 `.zshrc`의 작은 marker 블록으로 Homebrew와 mise를 활성화한다. oh-my-zsh는 Homebrew가 아닌 공식 설치기를 `--unattended --keep-zshrc`로 실행하므로 기존 `.zshrc`를 교체하지 않고, 기본 로그인 셸도 변경하지 않는다.
-6. **dotfile 연결** — GNU Stow로 OpenCode, agent 설정, Codex 전역 지침, Ghostty, Neovim, Karabiner 설정을 연결한다.
+6. **dotfile 연결** — GNU Stow로 OpenCode, agent 설정과 workflow skill, Codex 전역 지침, Ghostty, Neovim, Karabiner 설정을 연결한다.
 7. **Neovim 복원** — lazy.nvim 잠금 파일의 플러그인 revision을 복원하고, Mason 도구와 Treesitter parser 설치가 완료될 때까지 기다린다.
 8. **검증** — 현재 셸과 새 login zsh, Neovim parser와 Mason 포매터를 점검한다.
 
@@ -151,3 +151,17 @@ bash tests/test_bootstrap_static.sh
 기본 model·effort는 각 머신의 `~/.codex/config.toml`에서 선택한다. 일반 작업은 해당 머신의 기본 설정을 사용하고, `create-prompt`로 여러 저장소 계약이나 아키텍처 판단을 위한 계획을 만들 때는 필요하면 작업별로 high reasoning을 선택한다. 계획 모드를 사용하지 않는 경우에는 plan mode 설정을 관리하거나 동기화할 필요가 없다.
 
 새 공통 role 파일이 기존 `~/.codex/agents/*.toml`과 충돌하면 bootstrap은 중단한다. 기존 role의 model·effort와 개인 지침을 보존한 뒤, 공통 역할 지침을 병합하거나 백업한 다음 다시 실행한다. `agents` 디렉터리는 파일별로 연결해 개인 role 파일을 추가해도 저장소에 유입되지 않는다. `~/.codex` 전체를 심볼릭 링크하지 않는다.
+
+### 업무 workflow skills
+
+`agents/.agents/skills/`의 다음 skill은 bootstrap 뒤 `~/.agents/skills/`에서 사용할 수 있다. 이 문서와 skill 파일의 존재는 런타임이 해당 skill이나 역할을 자동 선택한다는 보장은 아니다. 실제 사용 가능한 역할·도구와 업무툴 전이를 먼저 확인한다.
+
+| 단계 | Skill | 산출물 |
+| --- | --- | --- |
+| 업무 설계 | `$workflow-epic-design` | 방향 기술 설계서와 epic 초안 |
+| story·작업 설계 | `$workflow-story-design` | 독립 계약, 인수조건, 상세 계획과 하위 태스크 초안 |
+| 실제 작업 | `$workflow-implementation` | worktree·stack 계획, 테스트와 재개 기록 |
+| 작업 검증 | `$workflow-verification` | 검증 근거와 reviewable commit·PR 초안 |
+| 정리 | `$workflow-closeout` | 병합·상태·worktree 정리의 승인용 초안 |
+
+공통 규칙은 `~/.agents/references/development-workflow.md`에 한 번만 정의한다. 모든 외부 변경은 현재 가설 단계에서 승인 전 초안으로 멈춘다. 특히 Jira/Notion 기록, 커밋, push, PR 생성, 병합·close, worktree 삭제는 각각 대상과 영향이 확인된 뒤 사람의 명시적 승인이 있어야 한다. 승인된 Git·`gh` 명령은 메인 agent가 구체 행동·대상·범위 안에서 직접 실행하고, repository 탐색·구현·파일 수정은 각 역할 agent에게 위임한다.

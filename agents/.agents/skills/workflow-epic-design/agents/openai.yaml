@@ -1,0 +1,6 @@
+interface:
+  display_name: "업무 설계"
+  short_description: "기획을 epic과 방향 기술 설계로 정리합니다"
+  default_prompt: "Use $workflow-epic-design to investigate the domain and draft an approval-ready epic."
+policy:
+  allow_implicit_invocation: true
