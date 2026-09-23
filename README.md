@@ -159,9 +159,26 @@ bash tests/test_bootstrap_static.sh
 | 단계 | Skill | 산출물 |
 | --- | --- | --- |
 | 업무 설계 | `$workflow-epic-design` | 방향 기술 설계서와 epic 초안 |
-| story·작업 설계 | `$workflow-story-design` | 독립 계약, 인수조건, 상세 계획과 하위 태스크 초안 |
-| 실제 작업 | `$workflow-implementation` | worktree·stack 계획, 테스트와 재개 기록 |
+| story·작업 설계 | `$workflow-story-design` | 직접 구현 또는 위임 계약의 story, 인수조건과 필요한 생성·readback 게이트 |
+| 실제 작업 | `$workflow-implementation` | 경로에 맞는 상세화·하위 태스크 확인, worktree·stack 계획, 테스트와 재개 기록 |
 | 작업 검증 | `$workflow-verification` | 검증 근거와 reviewable commit·PR 초안 |
 | 정리 | `$workflow-closeout` | 병합·상태·worktree 정리의 승인용 초안 |
 
 공통 규칙은 `~/.agents/references/development-workflow.md`에 한 번만 정의한다. 모든 외부 변경은 현재 가설 단계에서 승인 전 초안으로 멈춘다. 특히 Jira/Notion 기록, 커밋, push, PR 생성, 병합·close, worktree 삭제는 각각 대상과 영향이 확인된 뒤 사람의 명시적 승인이 있어야 한다. 승인된 Git·`gh` 명령은 메인 agent가 구체 행동·대상·범위 안에서 직접 실행하고, repository 탐색·구현·파일 수정은 각 역할 agent에게 위임한다.
+
+직접 개발할 story는 다음처럼 시작한다.
+
+```text
+Use $workflow-story-design to prepare the direct-implementation story, detailed spec, and approval-ready Jira subtask creation plan.
+```
+
+다른 엔지니어에게 개발을 위임할 story는 다음처럼 시작한다.
+
+```text
+Use $workflow-story-design to prepare a delegation story with scope, acceptance criteria, constraints, and the receiver's next action. Do not create subtasks.
+```
+
+| 경로 | 정상 산출 상태 | 코드 시작 조건 |
+| --- | --- | --- |
+| 직접 구현 | 생성·readback을 마친 구현 준비 | 선택 child와 parent·내용·승인 근거 확인 |
+| 위임 계약 | 위임 준비 또는 Jira 반영 완료 | 수임자가 상세 spec·하위 태스크 생성·readback을 마친 뒤 |

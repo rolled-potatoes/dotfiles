@@ -18,7 +18,23 @@
 
 재개할 때는 업무툴의 source key·링크·최종 수정 시각(또는 revision), 승인 범위, 현재 Git/stack 상태를 비교한다. 정보가 달라졌거나 확인할 수 없으면 최신 티켓을 다시 읽고 차이를 드러낸다.
 
-공유해야 할 결정은 업무툴에 올릴 초안을 먼저 만들고 승인 뒤 기록한다. 로컬 재개 기록은 대화 전체를 복제하지 않는다. 저장소 규칙이 없으면 각 worktree의 `.agents/work/<ticket>/handoff.md`를 기본 위치로 사용한다. 기록에는 source revision, 승인 범위, 새 결정, branch·worktree·stack 대응, 테스트 근거, 다음 행동만 남기며 비밀값을 쓰지 않는다. 이 기본 위치를 쓰기 전에 저장소의 ignore·문서 관례를 확인한다.
+공유해야 할 결정은 업무툴에 올릴 초안을 먼저 만들고 승인 뒤 기록한다. 공유 spec 변경, 검증 결과, 완료조건 충족 여부, 미실행 항목도 Jira child 기록 초안→승인→readback으로 남긴다. 로컬에만 방치하지 않는다.
+
+로컬 재개 기록은 대화 전체를 복제하지 않는다. 저장소 규칙이 없으면 각 worktree의 `.agents/work/<ticket>/handoff.md`를 기본 위치로 사용한다. 직접 구현 경로에는 다음 항목을 기록하고 비밀값을 쓰지 않는다.
+
+- parent key와 선택 child key, source updated 시각과 read_at
+- canonical plan·AC reference와 Jira readback으로 확인한 child key·parent
+- 실제 branch·worktree·stack mapping, 결정 delta와 검증 근거
+- 대기 승인·차단 요인·다음 행동
+
+위임 계약 경로에는 실행 child 대신 다음을 기록한다.
+
+- 수임 책임(실제 담당자가 없으면 `미정`), 범위·AC·canonical constraints
+- 상세화가 필요한 결정과 다음 소유자 행동
+- Jira readback 근거와 개발 완료가 아님을 나타내는 상태
+- `전달 완료`를 쓸 때만 사용자 전달 확인 또는 명시 승인된 수임자·채널의 전달 성공 근거
+
+이 기본 위치를 쓰기 전에 저장소의 ignore·문서 관례를 확인한다.
 
 ## 완료와 상태
 
