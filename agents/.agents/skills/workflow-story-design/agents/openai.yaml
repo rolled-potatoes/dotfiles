@@ -1,6 +1,0 @@
-interface:
-  display_name: "Story·작업 설계"
-  short_description: "직접 구현 또는 위임 계약의 story를 설계합니다"
-  default_prompt: "Use $workflow-story-design to choose direct implementation or delegation and prepare the right story contract."
-policy:
-  allow_implicit_invocation: true

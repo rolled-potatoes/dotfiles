@@ -1,6 +1,0 @@
-interface:
-  display_name: "실제 작업"
-  short_description: "직접·위임 경로에 맞춰 테스트 우선으로 구현합니다"
-  default_prompt: "Use $workflow-implementation to start work using the story's direct or delegated implementation path."
-policy:
-  allow_implicit_invocation: true
