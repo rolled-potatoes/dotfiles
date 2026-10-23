@@ -3,19 +3,12 @@ return {
 	lazy = false,
 	priority = 1000,
 	config = function()
-		vim.o.background = "light"
+		vim.o.background = "dark"
 		require("kanagawa").setup({
 			colors = {
-				theme = {
-					lotus = {
-						ui = {
-							bg = "#e5ede6",
-							bg_gutter = "#e5ede6",
-						},
-					},
-				},
+				theme = "dragon",
 			},
 		})
-		vim.cmd.colorscheme("kanagawa-lotus")
+		vim.cmd.colorscheme("kanagawa-dragon")
 	end,
 }
