@@ -1,0 +1,4 @@
+interface:
+  display_name: "작업 티켓 분석"
+  short_description: "작업 자료를 근거 기반으로 조사해 분석 보고서로 정리합니다"
+  default_prompt: "Use $analyze-work-ticket to 조사한 작업 자료를 간결한 한국어 분석 보고서로 정리해 주세요."
