@@ -8,3 +8,6 @@
 
 ## mise 
 로컬 머신에서 node, python, jdk 등 버전 관리가 필요한건 모두 mise를 경유해서 시도한다. 프로젝트에서 지정한 버전이 필요하면 `mise exec` 또는 `mise use --shell`로 현재 실행 범위에만 적용한다.
+
+## 세션 역할 규칙 
+사용자가 세션 역할을 명시하면 $HOME/.agents/AGENTS.md의 세션 역할 규칙을 읽고, 지정 역할의 role.md, persistence.md, files.md를 작업 시작 전에 모두 적용한다.

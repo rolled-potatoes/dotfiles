@@ -36,6 +36,34 @@ rg -Fqx 'export USER_SETTING=kept' "$HOME/.zshrc"
 rg -Fqx "$MANAGED_BEGIN" "$HOME/.zshrc"
 rg -Fqx "$MANAGED_END" "$HOME/.zshrc"
 
+# Existing absolute links to our skills must not block new role references.
+mkdir -p "$HOME/.agents/skills" "$HOME/.agents/references"
+ln -s "$ROOT/agents/.agents/skills/analyze-work-ticket" "$HOME/.agents/skills/analyze-work-ticket"
+DRY_RUN=1
+normalize_agent_links
+test "$(readlink "$HOME/.agents/skills/analyze-work-ticket")" = "$ROOT/agents/.agents/skills/analyze-work-ticket"
+DRY_RUN=0
+normalize_agent_links
+stow_package agents "$HOME"
+stow_package agents "$HOME"
+for role in development planning; do
+  test -L "$HOME/.agents/references/$role"
+  for document in role files persistence; do
+    cmp "$ROOT/agents/.agents/references/$role/$document.md" "$HOME/.agents/references/$role/$document.md"
+  done
+done
+test "$(linked_target_path "$HOME/.agents/skills/analyze-work-ticket")" = "$ROOT/agents/.agents/skills/analyze-work-ticket"
+# A link to a different source is never normalized or overwritten.
+rm "$HOME/.agents/skills/analyze-work-ticket"
+ln -s /tmp/unrelated-command "$HOME/.agents/skills/analyze-work-ticket"
+normalize_agent_links
+test "$(readlink "$HOME/.agents/skills/analyze-work-ticket")" = /tmp/unrelated-command
+if (stow_package agents "$HOME"); then
+  printf '%s\n' 'expected an unrelated agent-link conflict' >&2
+  exit 1
+fi
+test "$(readlink "$HOME/.agents/skills/analyze-work-ticket")" = /tmp/unrelated-command
+
 # The shared Codex package must populate ~/.codex without replacing the
 # machine-local config.toml or putting instructions in the home directory.
 mkdir -p "$HOME/.codex"

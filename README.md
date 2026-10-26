@@ -48,6 +48,7 @@ Codex는 Homebrew formula가 아니라 cask다. Ghostty와 Karabiner는 GUI 앱�
 
 - `.zprofile`, `.zshrc`, mise 전역 설정은 처음 관리 블록/버전을 추가하기 전에 타임스탬프 백업을 만든다. 이후에는 marker 블록만 재작성한다.
 - 올바른 Stow 링크는 그대로 둔다.
+- `~/.agents` 안에서 이 저장소의 동일한 원본을 가리키는 절대경로 링크는 Stow가 처리할 수 있는 상대경로 링크로 정리한다. `references/development`와 `references/planning`도 연결하며, 다른 원본을 가리키는 링크는 보존하고 충돌로 처리한다.
 - 일반 파일 또는 다른 위치를 향한 심볼릭 링크는 덮어쓰지 않고 중단한다. 파일 충돌을 검토한 뒤 `--backup`으로 실행하면 백업한 다음 교체할 수 있다.
 - 기존 `~/.oh-my-zsh`는 재설치하지 않는다. 기존 `.zshrc`는 공식 installer의 `--keep-zshrc`로 보존한다.
 - 과거 Codex 보조 명령 링크는 이 저장소의 과거 구현을 가리킬 때만 제거한다. 다른 명령을 가리키면 경고만 내고 보존한다.

@@ -162,10 +162,31 @@ remove_legacy_codex_links() {
     fi
   done
 }
+normalize_agent_links() {
+  # Stow rejects absolute links even when they point to this package.
+  # Only convert exact source matches; unrelated links remain conflicts.
+  local root="$HOME/.agents" path link source base relative prefix
+  [[ -d $root && ! -L $root ]] || return 0
+  while IFS= read -r -d '' path; do
+    link="$(readlink "$path")"
+    source="$DOTFILES_DIR/agents/.agents/${path#"$root/"}"
+    [[ $link == /* && $link == "$source" && -e $source ]] || continue
+    base="$(cd -P "$(dirname "$path")" && pwd)"
+    prefix=''
+    while [[ $source != "$base/"* && $base != / ]]; do
+      base="$(dirname "$base")"
+      prefix="../$prefix"
+    done
+    relative="$prefix${source#"${base%/}/"}"
+    say "Normalize agent link: $path -> $relative"
+    run ln -sfn "$relative" "$path"
+  done < <(find "$root" -type l -print0)
+}
 apply_dotfiles() {
   say '==> 6/8 dotfiles'; local config="$DOTFILES_DIR/opencode/.config/opencode"
   if [[ ! -f $config/opencode.json && -f $config/opencode.json.example ]]; then say "Create machine-local OpenCode config: $config/opencode.json"; run cp "$config/opencode.json.example" "$config/opencode.json"; fi
   run mkdir -p "$HOME/.config/opencode" "$HOME/.agents/references" "$HOME/.agents/scripts" "$HOME/.codex"
+  normalize_agent_links
   local package; for package in opencode agents; do stow_package "$package" "$HOME"; done
   # Keep machine-specific Codex configuration in ~/.codex.  This package has
   # only shared instructions and agent roles, so its contents belong below it.
