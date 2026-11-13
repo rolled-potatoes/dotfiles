@@ -190,6 +190,7 @@ apply_dotfiles() {
   # Keep machine-specific Codex configuration in ~/.codex.  This package has
   # only shared instructions and agent roles, so its contents belong below it.
   stow_package .codex "$HOME/.codex" no-folding
+  run mise exec -- python "$DOTFILES_DIR/scripts/configure-codex-agents.py" "$HOME/.codex/config.toml" "$DOTFILES_DIR/.codex/agents" "$DRY_RUN"
   remove_legacy_codex_links
   stow_package ghostty "$HOME/.config/ghostty"; stow_package nvim "$HOME/.config/nvim"; stow_package karabiner "$HOME/.config/karabiner"
 }

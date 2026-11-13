@@ -52,7 +52,7 @@ Codex는 Homebrew formula가 아니라 cask다. Ghostty와 Karabiner는 GUI 앱�
 - 일반 파일 또는 다른 위치를 향한 심볼릭 링크는 덮어쓰지 않고 중단한다. 파일 충돌을 검토한 뒤 `--backup`으로 실행하면 백업한 다음 교체할 수 있다.
 - 기존 `~/.oh-my-zsh`는 재설치하지 않는다. 기존 `.zshrc`는 공식 installer의 `--keep-zshrc`로 보존한다.
 - 과거 Codex 보조 명령 링크는 이 저장소의 과거 구현을 가리킬 때만 제거한다. 다른 명령을 가리키면 경고만 내고 보존한다.
-- Codex 공통 파일은 `~/.codex/AGENTS.md`와 `~/.codex/agents/`에만 연결한다. `~/.codex/config.toml`과 기존 역할 파일은 덮어쓰지 않으며, 충돌하면 변경 없이 중단한다.
+- Codex 공통 파일을 `~/.codex/AGENTS.md`와 `~/.codex/agents/`에 연결하고, `~/.codex/config.toml`의 관리 구간에 실제 역할 파일 경로를 등록한다. 기존 설정을 보존하고 변경 전 백업하며, 같은 이름의 개인 역할 설정이 있으면 등록을 중단한다.
 
 충돌을 직접 해결한 뒤에는 같은 명령을 재실행한다.
 
@@ -107,7 +107,7 @@ Codex는 Homebrew formula가 아니라 cask다. Ghostty와 Karabiner는 GUI 앱�
 
 설치 후 설정 위치는 `~/.codex/agents/<역할명>.toml`이다. 파일별 링크는 해당 링크가 있는 `~/.codex/agents/`를 기준으로 저장소의 `.codex/agents/`를 가리킨다. 현재 세션에 새 역할이 보이지 않으면 새 세션에서 로딩과 선택 모델을 확인한다.
 
-역할이 목록에 있는데 `agent type is currently not available`로 호출이 실패하면 경로 로딩도 확인한다. 로컬 Codex CLI 0.167.2 검사에서는 심볼릭 링크를 `config_file`로 지정한 경우 실패했고, 링크가 가리키는 실제 TOML 경로를 명시하면 성공했다. 이 경우 개인 `~/.codex/config.toml`에 필요한 역할을 아래처럼 등록한다. 예시는 저장소가 `~/dotfiles`에 있을 때이며, 상대 경로는 프로젝트 작업 디렉터리가 아닌 해당 `config.toml`의 디렉터리를 기준으로 한다. 다른 설치 위치에서는 실제 파일 경로로 조정한다.
+로컬 Codex CLI 0.167.2 검사에서는 심볼릭 링크를 `config_file`로 지정한 경우 실패했고, 링크가 가리키는 실제 TOML 경로를 명시하면 성공했다. bootstrap은 저장소의 실제 경로를 개인 `~/.codex/config.toml`의 관리 구간에 등록한다. 기존에 동일한 역할을 수동 등록했다면 해당 설정을 확인하고 정리한 뒤 다시 실행한다. 수동 설정 예시는 다음과 같다.
 
 ```toml
 [agents.tuning_coordinator]
