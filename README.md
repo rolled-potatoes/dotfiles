@@ -107,6 +107,15 @@ Codex는 Homebrew formula가 아니라 cask다. Ghostty와 Karabiner는 GUI 앱�
 
 설치 후 설정 위치는 `~/.codex/agents/<역할명>.toml`이다. 파일별 링크는 해당 링크가 있는 `~/.codex/agents/`를 기준으로 저장소의 `.codex/agents/`를 가리킨다. 현재 세션에 새 역할이 보이지 않으면 새 세션에서 로딩과 선택 모델을 확인한다.
 
+역할이 목록에 있는데 `agent type is currently not available`로 호출이 실패하면 경로 로딩도 확인한다. 로컬 Codex CLI 0.167.2 검사에서는 심볼릭 링크를 `config_file`로 지정한 경우 실패했고, 링크가 가리키는 실제 TOML 경로를 명시하면 성공했다. 이 경우 개인 `~/.codex/config.toml`에 필요한 역할을 아래처럼 등록한다. 예시는 저장소가 `~/dotfiles`에 있을 때이며, 상대 경로는 프로젝트 작업 디렉터리가 아닌 해당 `config.toml`의 디렉터리를 기준으로 한다. 다른 설치 위치에서는 실제 파일 경로로 조정한다.
+
+```toml
+[agents.tuning_coordinator]
+config_file = "../dotfiles/.codex/agents/tuning_coordinator.toml"
+```
+
+튜닝의 다른 역할과 기존 검토 역할도 각각 같은 방식으로 등록하고 새 실행에서 실제 생성과 응답을 확인한다. 기존 역할 등록이 있으면 중복 테이블을 추가하지 않고 해당 경로를 확인한다. bootstrap은 개인 `config.toml`을 자동 수정하지 않는다. 설정 키와 상대 경로 규칙은 [공식 설정 참조](https://learn.chatgpt.com/docs/config-file/config-reference)를 따른다. 앱의 기존 대화에 변경된 설정이 즉시 반영되는지는 별도로 확인해야 한다.
+
 메인 에이전트의 기본 model·effort는 각 머신의 `~/.codex/config.toml`에서 선택한다. 위 검토 역할은 각 파일의 명시적 설정을 사용한다. 계획 모드를 사용하지 않는 경우에는 plan mode 설정을 관리하거나 동기화할 필요가 없다.
 
 새 공통 role 파일이 기존 `~/.codex/agents/*.toml`과 충돌하면 bootstrap은 중단한다. 기존 role의 model·effort와 개인 지침을 보존한 뒤, 공통 역할 지침을 병합하거나 백업한 다음 다시 실행한다. `agents` 디렉터리는 파일별로 연결해 개인 role 파일을 추가해도 저장소에 유입되지 않는다. `~/.codex` 전체를 심볼릭 링크하지 않는다.
