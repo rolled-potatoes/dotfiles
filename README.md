@@ -90,9 +90,24 @@ Codex는 Homebrew formula가 아니라 cask다. Ghostty와 Karabiner는 GUI 앱�
 
 ## Codex 공통 설정과 개인 설정
 
-이 저장소는 공통 작업 방식과 역할만 제공한다. `.codex/AGENTS.md`는 메인 agent의 요구사항·권한·통합 책임과 `explorer`, `worker`, `verifier`의 역할 경계를 정의한다. 각 역할의 model과 reasoning effort는 정의하지 않는다.
+이 저장소는 공통 작업 방식과 검토 역할을 제공한다. `.codex/AGENTS.md`는 공통 지침을, `.codex/agents/*.toml`은 역할별 지침과 모델을 정의한다. 기존 사용자 정의 `explorer`, `worker`, `verifier` 설정을 제거하고 아래 검토 역할로 대체한다.
 
-기본 model·effort는 각 머신의 `~/.codex/config.toml`에서 선택한다. 일반 작업은 해당 머신의 기본 설정을 사용하고, `create-prompt`로 여러 저장소 계약이나 아키텍처 판단을 위한 계획을 만들 때는 필요하면 작업별로 high reasoning을 선택한다. 계획 모드를 사용하지 않는 경우에는 plan mode 설정을 관리하거나 동기화할 필요가 없다.
+| 검토 역할 | 모델 | reasoning effort | 호출 기준 |
+|---|---|---|---|
+| `policy_reviewer` | `gpt-6.1-sol` | `high` | 정책·요구사항 적합성 |
+| `test_reviewer` | `gpt-6.1-sol` | `high` | 테스트의 검증력과 누락 |
+| `code_reviewer` | `gpt-6.1-sol` | `high` | 구조·컨벤션·유지보수성 |
+| `reliability_reviewer` | `gpt-6-astra` | `high` | 동시성·데이터 변경·외부 연동 등 위험이 있는 작업 |
+
+모델 선택은 [공식 모델 선택 가이드](https://developers.openai.com/api/docs/guides/model-selection)와 [하위 에이전트 설정 문서](https://learn.chatgpt.com/docs/agent-configuration/subagents)를 바탕으로 한 초기 운영 설정이다. 이 네 역할에 대한 직접 비교 실측 결과는 아니다. 검토자 파일에 `model`과 `model_reasoning_effort`를 함께 명시하여 부모 모델에 의존하지 않는다.
+
+메인 에이전트가 조사·구현·검사 실행과 수정을 담당한다. 검토자는 같은 스냅샷과 승인된 요구사항을 독립적으로 검토하고 제품 코드를 수정하지 않는다. 공유 작업 트리에서 상태를 변경하는 검사는 순서를 조율한다. 메인은 중복 지적과 근거를 확인하고 수정한 뒤 해당 검토자를 재호출한다. 필수 수정 해결, 필요한 검사 통과, 요구사항 확인과 미검증 사항 공개 후 완료 후보를 보고한다. 두 차례 수정 후에도 남는 쟁점은 근거와 선택지를 사용자에게 보고하며 자동 통과시키지 않는다.
+
+호출 예: “승인된 티켓과 연결 문서, 현재 diff를 기준으로 policy_reviewer, test_reviewer, code_reviewer를 호출하여 독립 검토해주세요. 데이터 정합성 위험이 있으므로 reliability_reviewer도 호출해주세요. 결과를 모두 수집하여 근거를 확인하고, 승인 범위의 문제를 수정한 뒤 해당 검토자에게 재검증을 요청해주세요.”
+
+설치 후 설정 위치는 `~/.codex/agents/<역할명>.toml`이다. 파일별 링크는 해당 링크가 있는 `~/.codex/agents/`를 기준으로 저장소의 `.codex/agents/`를 가리킨다. 현재 세션에 새 역할이 보이지 않으면 새 세션에서 로딩과 선택 모델을 확인한다.
+
+메인 에이전트의 기본 model·effort는 각 머신의 `~/.codex/config.toml`에서 선택한다. 위 검토 역할은 각 파일의 명시적 설정을 사용한다. 계획 모드를 사용하지 않는 경우에는 plan mode 설정을 관리하거나 동기화할 필요가 없다.
 
 새 공통 role 파일이 기존 `~/.codex/agents/*.toml`과 충돌하면 bootstrap은 중단한다. 기존 role의 model·effort와 개인 지침을 보존한 뒤, 공통 역할 지침을 병합하거나 백업한 다음 다시 실행한다. `agents` 디렉터리는 파일별로 연결해 개인 role 파일을 추가해도 저장소에 유입되지 않는다. `~/.codex` 전체를 심볼릭 링크하지 않는다.
 
