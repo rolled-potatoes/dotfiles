@@ -29,7 +29,7 @@ cd ~/dotfiles
 3. **Homebrew 패키지** — [Brewfile](/Users/rolled-potatoes/dotfiles/Brewfile)의 CLI/cask를 `brew bundle install --no-upgrade`로 설치한다. Node.js/Python은 Brewfile에 넣지 않는다.
 4. **mise** — `mise latest`로 당시의 안정 버전을 확인해 전역 `node`와 `python`을 명시 버전으로 고정한다. 프로젝트의 `mise.toml`, `.tool-versions`, 기타 런타임 설정은 변경하지 않으며 해당 프로젝트 설정이 우선한다.
 5. **zsh 및 oh-my-zsh** — `.zprofile`과 `.zshrc`의 작은 marker 블록으로 Homebrew와 mise를 활성화한다. oh-my-zsh는 Homebrew가 아닌 공식 설치기를 `--unattended --keep-zshrc`로 실행하므로 기존 `.zshrc`를 교체하지 않고, 기본 로그인 셸도 변경하지 않는다.
-6. **dotfile 연결** — GNU Stow로 OpenCode, agent 설정, Codex 전역 지침, Ghostty, Neovim, Karabiner 설정을 연결한다.
+6. **dotfile 연결** — GNU Stow로 agent 설정, Codex 전역 지침, Ghostty, Neovim, Karabiner 설정을 연결한다.
 7. **Neovim 복원** — lazy.nvim 잠금 파일의 플러그인 revision을 복원하고, Mason 도구와 Treesitter parser 설치가 완료될 때까지 기다린다.
 8. **검증** — 현재 셸과 새 login zsh, Neovim parser와 Mason 포매터를 점검한다.
 
@@ -37,10 +37,10 @@ cd ~/dotfiles
 
 다음은 Homebrew로 관리한다.
 
-- CLI: `ripgrep`, `neovim`, `tree-sitter-cli`, `zsh`, `opencode`, `lazygit`, `mise`, `stow`, `git`
+- CLI: `ripgrep`, `neovim`, `tree-sitter-cli`, `zsh`, `lazygit`, `mise`, `stow`, `git`
 - 앱/cask: `ghostty`, `codex`, `karabiner-elements`, `font-cascadia-code`, `font-d2coding`
 
-Codex는 Homebrew formula가 아니라 cask다. Ghostty와 Karabiner는 GUI 앱이므로 설치 뒤 최초 실행·권한 부여는 사용자가 해야 한다. Codex/OpenCode의 로그인, OAuth, API key와 MCP 인증도 자동화하지 않는다.
+Codex는 Homebrew formula가 아니라 cask다. Ghostty와 Karabiner는 GUI 앱이므로 설치 뒤 최초 실행·권한 부여는 사용자가 해야 한다. Codex의 로그인, OAuth, API key와 MCP 인증도 자동화하지 않는다.
 
 ## 기존 파일과 충돌
 
@@ -68,20 +68,18 @@ Codex는 Homebrew formula가 아니라 cask다. Ghostty와 Karabiner는 GUI 앱�
 ./bin/verify
 ```
 
-성공 시 `brew`, `mise`, `node`, `python`, `zsh`, `rg`, `nvim`, `lazygit`, `codex`, `opencode`, 새 login zsh, Treesitter parser와 Mason 포매터를 확인한다. Ghostty는 CLI 대신 `/Applications/Ghostty.app` bundle 존재를 확인한다.
+성공 시 `brew`, `mise`, `node`, `python`, `zsh`, `rg`, `nvim`, `lazygit`, `codex`, 새 login zsh, Treesitter parser와 Mason 포매터를 확인한다. Ghostty는 CLI 대신 `/Applications/Ghostty.app` bundle 존재를 확인한다.
 
 - 네트워크 오류: VPN/프록시/TLS를 확인한 뒤 `./bin/bootstrap`을 재실행한다.
 - Homebrew 오류: `/opt/homebrew/bin/brew doctor`를 실행한 뒤 다시 시도한다.
 - mise 버전 조회/다운로드 오류: 네트워크를 확인한 뒤 `mise latest node`, `mise latest python`으로 원인을 보고 재실행한다.
 - 기본 로그인 셸을 Homebrew zsh로 바꾸려면 `/etc/shells` 등록과 `chsh`가 필요하다. 스크립트는 인증을 요구하는 이 동작을 자동 실행하지 않으며, 완료 메시지의 명령을 검토한 후 직접 실행한다.
-- OpenCode plugin 설치를 나중에 하려면 `./bin/bootstrap --skip-plugins` 없이 다시 실행한다. Node는 mise가 제공한다.
 
 ## 저장소에서 관리하지 않는 항목
 
 - `~/.codex/config.toml`의 기본 모델, 추론 수준, 서비스 tier, 계획 모드와 하위 agent 기본값
-- Codex/OpenCode 로그인, OAuth, API key, MCP 인증과 기기별 비밀값
+- Codex 로그인, OAuth, API key, MCP 인증과 기기별 비밀값
 - Codex의 프로젝트 신뢰 설정, 로컬 경로, 캐시·세션·로그와 기기별 role override
-- `opencode.json`의 개인 provider/model 선택과 OpenCode runtime 생성 파일
 - 프로젝트별 언어 runtime 버전
 - oh-my-zsh theme/plugin 선택, 기본 로그인 셸 변경
 - Karabiner의 `automatic_backups`

@@ -8,8 +8,7 @@ MANAGED_END='# <<< dotfiles managed environment <<<'
 STOW_IGNORE_ARGS=(
   --ignore='(^|/)\.DS_Store$' --ignore='(^|/)automatic_backups($|/)'
   --ignore='(^|/)node_modules($|/)' --ignore='(^|/)bun\.lock$'
-  --ignore='(^|/)package-lock\.json$' --ignore='^\.config/opencode/oh-my-opencode\.json$'
-  --ignore='^\.config/opencode/skills-lock\.json$' --ignore='^\.config/opencode/plugins($|/)'
+  --ignore='(^|/)package-lock\.json$'
 )
 
 say() { printf '%s\n' "$*"; }
@@ -40,7 +39,7 @@ preflight() {
 }
 report_pending_targets() {
   local target kind
-  for target in "$HOME/.zprofile" "$HOME/.zshrc" "${XDG_CONFIG_HOME:-$HOME/.config}/mise/config.toml" "$HOME/.oh-my-zsh" "$HOME/.config/ghostty" "$HOME/.config/nvim" "$HOME/.config/karabiner" "$HOME/.config/opencode"; do
+  for target in "$HOME/.zprofile" "$HOME/.zshrc" "${XDG_CONFIG_HOME:-$HOME/.config}/mise/config.toml" "$HOME/.oh-my-zsh" "$HOME/.config/ghostty" "$HOME/.config/nvim" "$HOME/.config/karabiner"; do
     if [[ -L $target ]]; then kind="symbolic link -> $(readlink "$target")"; elif [[ -d $target ]]; then kind='directory'; elif [[ -f $target ]]; then kind='file'; else kind='absent'; fi
     say "Inspect target: $target ($kind)"
   done
@@ -182,22 +181,16 @@ normalize_agent_links() {
   done < <(find "$root" -type l -print0)
 }
 apply_dotfiles() {
-  say '==> 6/8 dotfiles'; local config="$DOTFILES_DIR/opencode/.config/opencode"
-  if [[ ! -f $config/opencode.json && -f $config/opencode.json.example ]]; then say "Create machine-local OpenCode config: $config/opencode.json"; run cp "$config/opencode.json.example" "$config/opencode.json"; fi
-  run mkdir -p "$HOME/.config/opencode" "$HOME/.agents/references" "$HOME/.agents/scripts" "$HOME/.codex"
+  say '==> 6/8 dotfiles'
+  run mkdir -p "$HOME/.agents/references" "$HOME/.agents/scripts" "$HOME/.codex"
   normalize_agent_links
-  local package; for package in opencode agents; do stow_package "$package" "$HOME"; done
+  stow_package agents "$HOME"
   # Keep machine-specific Codex configuration in ~/.codex.  This package has
   # only shared instructions and agent roles, so its contents belong below it.
   stow_package .codex "$HOME/.codex" no-folding
   run mise exec -- python "$DOTFILES_DIR/scripts/configure-codex-agents.py" "$HOME/.codex/config.toml" "$DOTFILES_DIR/.codex/agents" "$DRY_RUN"
   remove_legacy_codex_links
   stow_package ghostty "$HOME/.config/ghostty"; stow_package nvim "$HOME/.config/nvim"; stow_package karabiner "$HOME/.config/karabiner"
-}
-install_opencode_plugins() {
-  ((SKIP_PLUGINS)) && { say 'OpenCode plugins skipped by request.'; return; }; local dir="$HOME/.config/opencode"
-  [[ -f $dir/package.json ]] || return 0; say '==> optional OpenCode plugins'
-  if command -v bun >/dev/null; then run bash -c "cd \"$dir\" && bun install"; elif command -v npm >/dev/null; then run bash -c "cd \"$dir\" && npm install"; else warn 'Bun/npm unavailable; plugins skipped. Rerun ./bin/bootstrap after mise activation.'; fi
 }
 remove_retired_codex_command() {
   local legacy="$HOME/.local/bin/codex-token-usage" link
@@ -208,7 +201,7 @@ verify_command() { command -v "$1" >/dev/null && say "PASS command: $1 ($(comman
 verify_app() { [[ -d "/Applications/$1.app" ]] && say "PASS app: $1 (/Applications/$1.app)" || { warn "MISSING app: $1"; return 1; }; }
 verify_environment() {
   say '==> 8/8 verification'; require_apple_silicon_macos; activate_brew; local failed=0 cmd
-  for cmd in brew mise node python zsh rg nvim lazygit codex opencode; do verify_command "$cmd" || failed=1; done
+  for cmd in brew mise node python zsh rg nvim lazygit codex; do verify_command "$cmd" || failed=1; done
   verify_app Ghostty || failed=1
   mise current node >/dev/null 2>&1 || { warn 'mise Node.js is not active'; failed=1; }; mise current python >/dev/null 2>&1 || { warn 'mise Python is not active'; failed=1; }
   if /bin/zsh -lic 'command -v brew >/dev/null && command -v mise >/dev/null && command -v node >/dev/null && command -v python >/dev/null'; then say 'PASS new login zsh: brew, mise, node, python'; else warn 'New login zsh could not initialize required commands'; failed=1; fi

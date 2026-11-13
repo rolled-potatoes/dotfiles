@@ -6,20 +6,19 @@ source "$DOTFILES_DIR/scripts/bootstrap-lib.sh"
 
 usage() {
   cat <<'EOF'
-Usage: ./bin/bootstrap [--dry-run] [--verify-only] [--backup] [--skip-plugins]
+Usage: ./bin/bootstrap [--dry-run] [--verify-only] [--backup]
 
   --dry-run       Print changes without installing packages or changing files.
   --verify-only   Run validation only; do not change files or install packages.
   --backup        Permit replacement of a conflicting dotfile by first backing it up.
-  --skip-plugins  Do not run the optional OpenCode plugin installation.
 EOF
 }
 
-DRY_RUN=0; VERIFY_ONLY=0; ALLOW_BACKUP=0; SKIP_PLUGINS=0
+DRY_RUN=0; VERIFY_ONLY=0; ALLOW_BACKUP=0
 while (($#)); do
   case "$1" in
     --dry-run) DRY_RUN=1 ;; --verify-only) VERIFY_ONLY=1 ;;
-    --backup) ALLOW_BACKUP=1 ;; --skip-plugins) SKIP_PLUGINS=1 ;;
+    --backup) ALLOW_BACKUP=1 ;;
     -h|--help) usage; exit 0 ;; *) fail "Unknown option: $1 (run ./bin/bootstrap --help)" ;;
   esac
   shift
@@ -34,12 +33,11 @@ install_oh_my_zsh
 configure_zsh
 apply_dotfiles
 bootstrap_neovim
-install_opencode_plugins
 remove_retired_codex_command
 if ((DRY_RUN)); then
   say 'Dry run complete. No files or packages were changed.'
 else
   verify_environment
-  say "Bootstrap complete. Authentication is still required for Codex and OpenCode."
+  say "Bootstrap complete. Authentication is still required for Codex."
 fi
 say "Optional login-shell change (requires password): echo /opt/homebrew/bin/zsh | sudo tee -a /etc/shells && chsh -s /opt/homebrew/bin/zsh"

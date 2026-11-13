@@ -2,7 +2,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 bash -n "$ROOT/install.sh" "$ROOT/bin/bootstrap" "$ROOT/bin/verify" "$ROOT/scripts/bootstrap-lib.sh"
-for expected in ripgrep neovim ghostty zsh codex opencode lazygit mise; do rg -qx "(brew|cask) \"$expected\"" "$ROOT/Brewfile"; done
+for expected in ripgrep neovim ghostty zsh codex lazygit mise; do rg -qx "(brew|cask) \"$expected\"" "$ROOT/Brewfile"; done
 rg -Fqx 'brew "tree-sitter-cli"' "$ROOT/Brewfile"
 rg -Fqx "bootstrap_neovim" "$ROOT/bin/bootstrap"
 rg -Fq "MasonToolsInstallSync" "$ROOT/scripts/bootstrap-lib.sh"
