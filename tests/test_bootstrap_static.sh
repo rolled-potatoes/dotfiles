@@ -38,10 +38,10 @@ rg -Fqx "$MANAGED_END" "$HOME/.zshrc"
 
 # Existing absolute links to our skills must not block new role references.
 mkdir -p "$HOME/.agents/skills" "$HOME/.agents/references"
-ln -s "$ROOT/agents/.agents/skills/analyze-work-ticket" "$HOME/.agents/skills/analyze-work-ticket"
+ln -s "$ROOT/agents/.agents/skills/define-ticket-scope" "$HOME/.agents/skills/define-ticket-scope"
 DRY_RUN=1
 normalize_agent_links
-test "$(readlink "$HOME/.agents/skills/analyze-work-ticket")" = "$ROOT/agents/.agents/skills/analyze-work-ticket"
+test "$(readlink "$HOME/.agents/skills/define-ticket-scope")" = "$ROOT/agents/.agents/skills/define-ticket-scope"
 DRY_RUN=0
 normalize_agent_links
 stow_package agents "$HOME"
@@ -52,17 +52,19 @@ for role in development planning; do
     cmp "$ROOT/agents/.agents/references/$role/$document.md" "$HOME/.agents/references/$role/$document.md"
   done
 done
-test "$(linked_target_path "$HOME/.agents/skills/analyze-work-ticket")" = "$ROOT/agents/.agents/skills/analyze-work-ticket"
+test "$(linked_target_path "$HOME/.agents/skills/define-ticket-scope")" = "$ROOT/agents/.agents/skills/define-ticket-scope"
+cmp "$ROOT/agents/.agents/skills/quality-tune/SKILL.md" "$HOME/.agents/skills/quality-tune/SKILL.md"
+cmp "$ROOT/agents/.agents/skills/quality-tune/agents/openai.yaml" "$HOME/.agents/skills/quality-tune/agents/openai.yaml"
 # A link to a different source is never normalized or overwritten.
-rm "$HOME/.agents/skills/analyze-work-ticket"
-ln -s /tmp/unrelated-command "$HOME/.agents/skills/analyze-work-ticket"
+rm "$HOME/.agents/skills/define-ticket-scope"
+ln -s /tmp/unrelated-command "$HOME/.agents/skills/define-ticket-scope"
 normalize_agent_links
-test "$(readlink "$HOME/.agents/skills/analyze-work-ticket")" = /tmp/unrelated-command
+test "$(readlink "$HOME/.agents/skills/define-ticket-scope")" = /tmp/unrelated-command
 if (stow_package agents "$HOME"); then
   printf '%s\n' 'expected an unrelated agent-link conflict' >&2
   exit 1
 fi
-test "$(readlink "$HOME/.agents/skills/analyze-work-ticket")" = /tmp/unrelated-command
+test "$(readlink "$HOME/.agents/skills/define-ticket-scope")" = /tmp/unrelated-command
 
 # The shared Codex package must populate ~/.codex without replacing the
 # machine-local config.toml or putting instructions in the home directory.
@@ -71,9 +73,11 @@ printf '%s\n' 'model = "machine-local-model"' > "$HOME/.codex/config.toml"
 stow_package .codex "$HOME/.codex" no-folding
 test -L "$HOME/.codex/AGENTS.md"
 test ! -L "$HOME/.codex/agents"
-test -L "$HOME/.codex/agents/explorer.toml"
-test -L "$HOME/.codex/agents/verifier.toml"
-test -L "$HOME/.codex/agents/worker.toml"
+for role_file in "$ROOT"/.codex/agents/*.toml; do
+  role_name="${role_file##*/}"
+  test -L "$HOME/.codex/agents/$role_name"
+  cmp "$role_file" "$HOME/.codex/agents/$role_name"
+done
 test ! -e "$HOME/AGENTS.md"
 rg -Fqx 'model = "machine-local-model"' "$HOME/.codex/config.toml"
 printf '%s\n' 'name = "machine-local-role"' > "$HOME/.codex/agents/local.toml"
@@ -99,10 +103,10 @@ conflict_home="$(mktemp -d)"
 trap 'rm -rf "$temporary_home" "$conflict_home"' EXIT
 mkdir -p "$conflict_home/.codex/agents"
 printf '%s\n' '# personal instructions' > "$conflict_home/.codex/AGENTS.md"
-printf '%s\n' 'name = "personal-explorer"' > "$conflict_home/.codex/agents/explorer.toml"
+printf '%s\n' 'name = "personal-reviewer"' > "$conflict_home/.codex/agents/code_reviewer.toml"
 if stow --restow --no-folding --target "$conflict_home/.codex" --dir "$ROOT" .codex; then
   printf '%s\n' 'expected a role-file conflict' >&2
   exit 1
 fi
 rg -Fqx '# personal instructions' "$conflict_home/.codex/AGENTS.md"
-rg -Fqx 'name = "personal-explorer"' "$conflict_home/.codex/agents/explorer.toml"
+rg -Fqx 'name = "personal-reviewer"' "$conflict_home/.codex/agents/code_reviewer.toml"

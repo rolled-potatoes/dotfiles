@@ -90,7 +90,7 @@ Codex는 Homebrew formula가 아니라 cask다. Ghostty와 Karabiner는 GUI 앱�
 
 ## Codex 공통 설정과 개인 설정
 
-이 저장소는 공통 작업 방식과 검토 역할을 제공한다. `.codex/AGENTS.md`는 공통 지침을, `.codex/agents/*.toml`은 역할별 지침과 모델을 정의한다. 기존 사용자 정의 `explorer`, `worker`, `verifier` 설정을 제거하고 아래 검토 역할로 대체한다.
+이 저장소는 공통 작업 방식과 검토 역할을 제공한다. `.codex/AGENTS.md`는 공통 지침을, `.codex/agents/*.toml`은 역할별 지침과 모델을 정의한다. 독립 검증에는 아래 검토 역할을 사용한다.
 
 | 검토 역할 | 모델 | reasoning effort | 호출 기준 |
 |---|---|---|---|
@@ -110,4 +110,33 @@ Codex는 Homebrew formula가 아니라 cask다. Ghostty와 Karabiner는 GUI 앱�
 메인 에이전트의 기본 model·effort는 각 머신의 `~/.codex/config.toml`에서 선택한다. 위 검토 역할은 각 파일의 명시적 설정을 사용한다. 계획 모드를 사용하지 않는 경우에는 plan mode 설정을 관리하거나 동기화할 필요가 없다.
 
 새 공통 role 파일이 기존 `~/.codex/agents/*.toml`과 충돌하면 bootstrap은 중단한다. 기존 role의 model·effort와 개인 지침을 보존한 뒤, 공통 역할 지침을 병합하거나 백업한 다음 다시 실행한다. `agents` 디렉터리는 파일별로 연결해 개인 role 파일을 추가해도 저장소에 유입되지 않는다. `~/.codex` 전체를 심볼릭 링크하지 않는다.
+
+## 개발 품질 튜닝
+
+`quality-tune`은 검증된 개발 결과물을 전문가 토론과 전담 구현자 한 명으로 개선하는 명시적 호출 스킬이다. UI 표시 이름은 **개발 품질 튜닝**이다.
+
+```text
+$quality-tune 현재 검증을 통과한 변경사항을 튜닝해 주세요.
+큰 작업 디렉터리는 development/수강신청이며, 도메인 책임과 유지보수성을 우선해 주세요.
+```
+
+위 상대 경로는 튜닝 대상 프로젝트 루트를 기준으로 한다. 기록은 `development/<task dir>/tune/<실행ID>/`의 `brief.md`, `decisions.md`, `handoff.md`에 남긴다. 큰 작업 디렉터리를 식별할 수 없으면 확인하며, 튜닝 때문에 별도 큰 작업 디렉터리를 만들지 않는다.
+
+| 역할 | 참여 | 모델 · 추론 수준 |
+|---|---|---|
+| `tuning_coordinator` | 독립 조정자 | `gpt-6-astra` · `high` |
+| `tuning_fowler` | 공통: 변경 용이성 | `gpt-6.1-sol` · `high` |
+| `tuning_ousterhout` | 공통: 복잡도·추상화 | `gpt-6.1-sol` · `high` |
+| `tuning_evans` | 공통: 업무 언어·책임 경계 | `gpt-6.1-sol` · `high` |
+| `tuning_kleppmann` | 조건부: 데이터·부분 실패 | `gpt-6-astra` · `high` |
+| `tuning_gregg` | 조건부: 성능·실측 | `gpt-6.1-sol` · `high` |
+| `tuning_implementer` | 단일 구현자 | `gpt-6.1-sol` · `high` |
+
+전문가들은 독립 연구 후 근거로 논박하며 대상 파일을 수정하지 않는다. 조정자가 결정을 취합하고 구현자 한 명이 수정한 뒤 관련 전문가가 의도 반영을 확인한다. 메인이 기존 검토자들을 호출해 최종 변경을 독립 검증한다. 메인도 튜닝 대상 코드는 수정하지 않는다. 쟁점별 최초 논박 1회와 새 근거가 있을 때의 보완·재논박 1회를 기본으로 하며, 현재 유지·보류를 허용한다. 실제 인물의 공개 원칙을 참고한 역할이며 모델 배정은 시범 운영으로 평가할 초기 설정이다.
+
+스킬 원본은 `agents/.agents/skills/quality-tune/`, 설치 위치는 `~/.agents/skills/quality-tune/`다. `agents/openai.yaml`에서 표시 이름과 명시적 호출 정책을 설정한다. 역할 원본은 `.codex/agents/tuning_*.toml`, 설치 위치는 `~/.codex/agents/`다. 설치 후 새 역할이 현재 세션에 없으면 새 세션에서 호출한다. 에이전트 실행 한도는 개인 설정으로 관리한다.
+
+상세 절차와 출처는 [스킬](agents/.agents/skills/quality-tune/SKILL.md)에서 연결한다. 기존 검토 역할과 개인 `config.toml`을 변경하지 않는다. 스킬 호출은 커밋·push·PR·외부 변경을 자동 승인하지 않는다.
+
+역할이 목록에 표시돼도 런타임이 이름으로 생성을 거부하면 오류를 보고한다. 역할 파일의 지침·모델·추론 수준과 추가 필수 설정을 동등하게 적용할 수 있을 때만 역할별로 독립된 일반 하위 에이전트를 생성하며, 등록 이름 호출과 구분해 기록한다. 조건을 충족하지 못하면 진행을 중단한다.
 
