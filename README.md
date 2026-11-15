@@ -129,13 +129,15 @@ $quality-tune 현재 검증을 통과한 변경사항을 튜닝해 주세요.
 
 위 상대 경로는 튜닝 대상 프로젝트 루트를 기준으로 한다. 기록은 `development/<task dir>/tune/<실행ID>/`의 `brief.md`, `decisions.md`, `handoff.md`에 남긴다. 큰 작업 디렉터리를 식별할 수 없으면 확인하며, 튜닝 때문에 별도 큰 작업 디렉터리를 만들지 않는다.
 
+메인은 실행별 결과 요약을 `~/Documents/Codex/quality-tune-results/reports/<실행ID>.md`에 모은다. 책임 구조·성능·검증 및 모니터링의 전후 근거와 미확인 사항, 시작·종료 시각과 총 경과 시간을 기록한다. 변경 없이 종료하거나 중단해도 확인 가능한 내용을 남긴다. 공용 경로를 쓸 수 없으면 미저장과 이유를 보고한다.
+
 | 역할 | 참여 | 모델 · 추론 수준 |
 |---|---|---|
-| `tuning_coordinator` | 독립 조정자 | `gpt-6-astra` · `high` |
+| `tuning_coordinator` | 독립 조정자 | `gpt-6.1-sol` · `max` |
 | `tuning_fowler` | 공통: 변경 용이성 | `gpt-6.1-sol` · `high` |
-| `tuning_ousterhout` | 공통: 복잡도·추상화 | `gpt-6.1-sol` · `high` |
-| `tuning_evans` | 공통: 업무 언어·책임 경계 | `gpt-6.1-sol` · `high` |
-| `tuning_kleppmann` | 조건부: 데이터·부분 실패 | `gpt-6-astra` · `high` |
+| `tuning_ousterhout` | 공통: 복잡도·추상화 | `gpt-6.1-sol` · `max` |
+| `tuning_evans` | 공통: 업무 언어·책임 경계 | `gpt-6.1-sol` · `max` |
+| `tuning_kleppmann` | 조건부: 데이터·부분 실패 | `gpt-6.1-sol` · `max` |
 | `tuning_gregg` | 조건부: 성능·실측 | `gpt-6.1-sol` · `high` |
 | `tuning_implementer` | 단일 구현자 | `gpt-6.1-sol` · `high` |
 
