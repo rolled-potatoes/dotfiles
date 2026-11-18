@@ -92,10 +92,10 @@ Codex는 Homebrew formula가 아니라 cask다. Ghostty와 Karabiner는 GUI 앱�
 
 | 검토 역할 | 모델 | reasoning effort | 호출 기준 |
 |---|---|---|---|
-| `policy_reviewer` | `gpt-6.1-sol` | `high` | 정책·요구사항 적합성 |
-| `test_reviewer` | `gpt-6.1-sol` | `high` | 테스트의 검증력과 누락 |
-| `code_reviewer` | `gpt-6.1-sol` | `high` | 구조·컨벤션·유지보수성 |
-| `reliability_reviewer` | `gpt-6-astra` | `high` | 동시성·데이터 변경·외부 연동 등 위험이 있는 작업 |
+| `policy_reviewer` | `gpt-6.2-sol` | `high` | 정책·요구사항 적합성 |
+| `test_reviewer` | `gpt-6.1-terra` | `high` | 테스트의 검증력과 누락 |
+| `code_reviewer` | `gpt-6.1-terra` | `high` | 구조·컨벤션·유지보수성 |
+| `reliability_reviewer` | `gpt-6.2-astra` | `high` | 동시성·데이터 변경·외부 연동 등 위험이 있는 작업 |
 
 모델 선택은 [공식 모델 선택 가이드](https://developers.openai.com/api/docs/guides/model-selection)와 [하위 에이전트 설정 문서](https://learn.chatgpt.com/docs/agent-configuration/subagents)를 바탕으로 한 초기 운영 설정이다. 이 네 역할에 대한 직접 비교 실측 결과는 아니다. 검토자 파일에 `model`과 `model_reasoning_effort`를 함께 명시하여 부모 모델에 의존하지 않는다.
 
@@ -133,13 +133,13 @@ $quality-tune 현재 검증을 통과한 변경사항을 튜닝해 주세요.
 
 | 역할 | 참여 | 모델 · 추론 수준 |
 |---|---|---|
-| `tuning_coordinator` | 독립 조정자 | `gpt-6.1-sol` · `max` |
-| `tuning_fowler` | 공통: 변경 용이성 | `gpt-6.1-sol` · `high` |
-| `tuning_ousterhout` | 공통: 복잡도·추상화 | `gpt-6.1-sol` · `max` |
-| `tuning_evans` | 공통: 업무 언어·책임 경계 | `gpt-6.1-sol` · `max` |
-| `tuning_kleppmann` | 조건부: 데이터·부분 실패 | `gpt-6.1-sol` · `max` |
-| `tuning_gregg` | 조건부: 성능·실측 | `gpt-6.1-sol` · `high` |
-| `tuning_implementer` | 단일 구현자 | `gpt-6.1-sol` · `high` |
+| `tuning_coordinator` | 독립 조정자 | `gpt-6.2-sol` · `high` |
+| `tuning_fowler` | 공통: 변경 용이성 | `gpt-6.2-sol` · `medium` |
+| `tuning_ousterhout` | 공통: 복잡도·추상화 | `gpt-6.2-sol` · `high` |
+| `tuning_evans` | 공통: 업무 언어·책임 경계 | `gpt-6.2-sol` · `high` |
+| `tuning_kleppmann` | 조건부: 데이터·부분 실패 | `gpt-6.2-sol` · `high` |
+| `tuning_gregg` | 조건부: 성능·실측 | `gpt-6.2-sol` · `medium` |
+| `tuning_implementer` | 단일 구현자 | `gpt-6.2-sol` · `medium` |
 
 전문가들은 독립 연구 후 근거로 논박하며 대상 파일을 수정하지 않는다. 조정자가 결정을 취합하고 구현자 한 명이 수정한 뒤 관련 전문가가 의도 반영을 확인한다. 메인이 기존 검토자들을 호출해 최종 변경을 독립 검증한다. 메인도 튜닝 대상 코드는 수정하지 않는다. 쟁점별 최초 논박 1회와 새 근거가 있을 때의 보완·재논박 1회를 기본으로 하며, 현재 유지·보류를 허용한다. 실제 인물의 공개 원칙을 참고한 역할이며 모델 배정은 시범 운영으로 평가할 초기 설정이다.
 
