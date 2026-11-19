@@ -1,5 +1,5 @@
 # 테마 설정
-theme = apprentice-default
+theme = codex-og
 background-opacity = 1
 background-blur-radius = 10
 

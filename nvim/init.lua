@@ -9,4 +9,6 @@ vim.g.loaded_ruby_provider = 0
 
 require("config.option")
 require("config.base-keymap")
+vim.opt.termguicolors = true
+vim.cmd.colorscheme("codex-og")
 require("config.lazy")

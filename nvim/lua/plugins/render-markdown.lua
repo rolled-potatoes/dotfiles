@@ -52,29 +52,6 @@ return {
 		dash = { highlight = "MarkdownBorder" },
 	},
 	config = function(_, opts)
-		-- GitHub Light를 참고해 제목 색 띠를 없애고 요소별 대비를 맞춘다.
-		local function highlights()
-			local groups = {
-				MarkdownHeading = { fg = "#1f2328", bold = true },
-				MarkdownCodeBlock = { bg = "#f6f8fa" },
-				MarkdownInlineCode = { fg = "#1f2328", bg = "#d8d8d8" },
-				MarkdownInlineCodeEdge = { fg = "#d8d8d8", bg = "#ffffff" },
-				MarkdownBorder = { fg = "#afb8c1" },
-				MarkdownTableHead = { fg = "#57606a", bold = true },
-				MarkdownLink = { fg = "#0969da", underline = true },
-				MarkdownQuote = { fg = "#57606a" },
-			}
-			for name, value in pairs(groups) do
-				vim.api.nvim_set_hl(0, name, value)
-			end
-			vim.api.nvim_set_hl(0, "@markup.link.label.markdown_inline", { link = "MarkdownLink" })
-		end
-
-		vim.api.nvim_create_autocmd("ColorScheme", {
-			group = vim.api.nvim_create_augroup("markdown_github_highlights", { clear = true }),
-			callback = highlights,
-		})
-		highlights()
 		-- 기본 URL별 아이콘도 생략해 링크 본문만 표시한다.
 		opts.link.custom = {}
 		for name in pairs(require("render-markdown").default.link.custom) do
@@ -84,6 +61,5 @@ return {
 			markdown = require("config.markdown-rounded-code"),
 		}
 		require("render-markdown").setup(opts)
-		require("config.markdown-light").setup()
 	end,
 }

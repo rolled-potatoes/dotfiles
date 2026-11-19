@@ -1,0 +1,24 @@
+background = #343541
+foreground = #d1d5db
+cursor-color = #ececf1
+cursor-text = #343541
+selection-background = #444654
+selection-foreground = #ececf1
+
+# ANSI colors mapped to the Codex OG Dark palette.
+palette = 0=#202123
+palette = 1=#f28b82
+palette = 2=#65c99a
+palette = 3=#f8b86f
+palette = 4=#8dc8f4
+palette = 5=#b4a1e5
+palette = 6=#8bd5ca
+palette = 7=#d1d5db
+palette = 8=#acacbe
+palette = 9=#f28b82
+palette = 10=#65c99a
+palette = 11=#f8b86f
+palette = 12=#8dc8f4
+palette = 13=#b4a1e5
+palette = 14=#8bd5ca
+palette = 15=#ececf1
