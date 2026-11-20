@@ -46,6 +46,9 @@ return {
 
 		return {
 			on_attach = on_attach,
+			renderer = {
+				full_name = true,
+			},
 			view = {
 				side = "left",
 				width = "25%",
