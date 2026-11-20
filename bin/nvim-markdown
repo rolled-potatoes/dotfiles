@@ -1,0 +1,20 @@
+#!/bin/sh
+set -eu
+
+if [ "$#" -eq 0 ]; then
+  printf 'Usage: %s <markdown-file> [<markdown-file> ...]\n' "${0##*/}" >&2
+  exit 2
+fi
+
+if ! nvim_path=$(command -v nvim); then
+  printf 'Neovim executable not found in PATH.\n' >&2
+  exit 1
+fi
+
+exec /usr/bin/open -na /Applications/Ghostty.app --args \
+  --font-family=SUIT \
+  '--font-family=Cascadia Code' \
+  --font-family=D2Coding \
+  --working-directory="$PWD" \
+  --window-save-state=never \
+  -e "$nvim_path" -- "$@"
