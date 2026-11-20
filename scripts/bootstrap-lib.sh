@@ -192,6 +192,42 @@ apply_dotfiles() {
   remove_legacy_codex_links
   stow_package ghostty "$HOME/.config/ghostty"; stow_package nvim "$HOME/.config/nvim"; stow_package karabiner "$HOME/.config/karabiner"
 }
+install_workflow_inbox() {
+  local source="$DOTFILES_DIR/workflow-inbox" data="$HOME/codex-workflow-inbox"
+  local name target
+  say '==> Install Codex workflow inbox'
+  local legacy="$HOME/Documents/projects/workflow-inbox"
+  if [[ -d $legacy && ! -L $legacy && -d $legacy/result && $legacy/bin -ef $source/bin ]]; then
+    [[ ! -e $data && ! -L $data ]] || fail "Both inbox locations exist: $data and $legacy"
+    run mv "$legacy" "$data"
+    if ! run ln -s "$data" "$legacy"; then
+      run mv "$data" "$legacy"
+      fail "Could not preserve previous inbox path: $legacy"
+    fi
+  fi
+  run mkdir -p "$data/result"
+  for name in bin transition-rules.md plugin; do
+    target="$source/$name"
+    if [[ $name == plugin ]]; then target="$source/plugins/workflow-inbox"; fi
+    if [[ -L $data/$name && $data/$name -ef $target ]]; then continue; fi
+    if [[ -e $data/$name || -L $data/$name ]]; then fail "Workflow inbox link conflicts with $data/$name"; fi
+    run ln -s "$target" "$data/$name"
+  done
+  run codex plugin marketplace add "$source"
+  run codex plugin add workflow-inbox@workflow-panel-lab
+}
+verify_workflow_inbox() {
+  local data="$HOME/codex-workflow-inbox"
+  [[ -d $data/result && $data/plugin -ef $DOTFILES_DIR/workflow-inbox/plugins/workflow-inbox &&
+     $data/bin -ef $DOTFILES_DIR/workflow-inbox/bin &&
+     $data/transition-rules.md -ef $DOTFILES_DIR/workflow-inbox/transition-rules.md ]] || return 1
+  codex plugin list --marketplace workflow-panel-lab --json |
+    mise exec -- python3 -c 'import json, sys
+from pathlib import Path
+manifest = json.loads(Path(sys.argv[1]).read_text())
+installed = json.load(sys.stdin)["installed"]
+sys.exit(not any(p["pluginId"] == "workflow-inbox@workflow-panel-lab" and p["installed"] and p["enabled"] and p["version"] == manifest["version"] for p in installed))' "$data/plugin/.codex-plugin/plugin.json"
+}
 remove_retired_codex_command() {
   local legacy="$HOME/.local/bin/codex-token-usage" link
   [[ -L $legacy ]] || return 0; link="$(readlink "$legacy")"
@@ -203,6 +239,7 @@ verify_environment() {
   say '==> 8/8 verification'; require_apple_silicon_macos; activate_brew; local failed=0 cmd
   for cmd in brew mise node python zsh rg nvim lazygit codex; do verify_command "$cmd" || failed=1; done
   verify_app Ghostty || failed=1
+  verify_workflow_inbox && say "PASS Codex workflow inbox" || { warn "Workflow inbox installation incomplete"; failed=1; }
   mise current node >/dev/null 2>&1 || { warn 'mise Node.js is not active'; failed=1; }; mise current python >/dev/null 2>&1 || { warn 'mise Python is not active'; failed=1; }
   if /bin/zsh -lic 'command -v brew >/dev/null && command -v mise >/dev/null && command -v node >/dev/null && command -v python >/dev/null'; then say 'PASS new login zsh: brew, mise, node, python'; else warn 'New login zsh could not initialize required commands'; failed=1; fi
   if /bin/zsh -ic 'command -v brew >/dev/null && command -v mise >/dev/null && command -v node >/dev/null && command -v python >/dev/null'; then say 'PASS new interactive zsh: brew, mise, node, python'; else warn 'New interactive zsh could not initialize required commands'; failed=1; fi

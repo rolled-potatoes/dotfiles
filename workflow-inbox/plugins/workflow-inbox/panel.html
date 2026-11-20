@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<style>:root{color-scheme:light dark}body{font:16px/1.55 system-ui;margin:20px}section{border-top:1px solid #8887;padding:12px 0}h2{font-size:18px;margin:4px 0}p{white-space:pre-wrap}details{border-top:1px solid #8887;padding:12px 0}summary{cursor:pointer;font-weight:600}a{display:block;margin:8px 0}p{overflow-wrap:anywhere}
+nav,.switch{display:flex;gap:5px;align-items:center;flex-wrap:wrap}nav{justify-content:space-between;margin-bottom:16px}
+button{font:inherit;color:inherit;background:transparent;border:1px solid #8888;border-radius:7px;padding:4px 10px;cursor:pointer}
+button[aria-pressed=true]{background:CanvasText;color:Canvas}
+summary{line-height:1.8;overflow-wrap:anywhere}.badge{font-size:.78em;border-radius:5px;padding:3px 7px;margin-right:8px;background:#e1e5e9;color:#26313b;white-space:nowrap}
+[data-state=계획중]{background:#e3e7ff;color:#353684}[data-state=계획수정]{background:#ffdfdf;color:#7d2734}
+[data-state=개발대기]{background:#fff0c8;color:#654500}[data-state=개발중]{background:#d3eaff;color:#123f66}
+[data-state=개발완료]{background:#d8efdf;color:#17452b}[data-state=아카이브]{background:#e7dfee;color:#50365f}
+main.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,350px),1fr));gap:10px;align-items:start}
+main.cards details{border:1px solid #8887;border-radius:10px;padding:12px}main.cards summary{min-height:48px}
+</style>
+<h1>작업함</h1><nav aria-label="작업함 보기"><div class="switch"><select id="projectScope" aria-label="프로젝트 보기"><option value="">전체 프로젝트</option></select><button id="active">작업</button><button id="archive">보관함</button></div><div class="switch"><button id="refresh">새로고침</button><button id="listMode">목록</button><button id="cardMode">카드</button></div></nav><div id="listActions" hidden><button id="expandAll" aria-controls="tasks">전체 열기</button> <button id="collapseAll" aria-controls="tasks">전체 접기</button></div><main id="tasks">작업 목록을 읽고 있습니다.</main><p id="notice" role="status"></p>
+<script>
+const list = document.querySelector('#tasks');
+let allRows = [], archivedTab = false, mode = 'list';
+try { if(localStorage.getItem('inbox-view')==='cards') mode='cards'; } catch {}
+const scope = document.querySelector('#projectScope');
+scope.onchange = () => render(allRows);
+let scopeSignature = '';
+function updateScope(context) {
+  if (!Array.isArray(context?.projects)) return false;
+  const signature = JSON.stringify([context.currentProject, context.projects]);
+  if (signature === scopeSignature) return false;
+  scopeSignature = signature;
+  const selected = scope.value;
+  scope.replaceChildren(new Option('전체 프로젝트', ''));
+  for (const p of context.projects) {
+    const label = p.id === context.currentProject ? '이 프로젝트 · ' + p.label : p.label;
+    scope.append(new Option(label, p.id));
+  }
+  scope.value = selected || '';
+  return true;
+}
+const pendingActions = new Map();
+const linkRequests = new Set();
+function selectView(next) {
+  mode=next;
+  try { localStorage.setItem('inbox-view',mode); } catch {}
+  render(allRows);
+}
+document.querySelector('#active').onclick=()=>{archivedTab=false;render(allRows)};
+document.querySelector('#archive').onclick=()=>{archivedTab=true;render(allRows)};
+document.querySelector('#listMode').onclick=()=>selectView('list');
+document.querySelector('#cardMode').onclick=()=>selectView('cards');
+function setAllOpen(open) {
+  for (const item of list.querySelectorAll('details')) item.open = open;
+}
+document.querySelector('#expandAll').onclick = () => setAllOpen(true);
+document.querySelector('#collapseAll').onclick = () => setAllOpen(false);
+function render(rows) {
+  if (!Array.isArray(rows)) return;
+  const expanded = new Set([...list.querySelectorAll('details[open]')].map(el => el.dataset.task));
+  list.replaceChildren();
+  allRows = rows;
+  if (scope.value) rows = rows.filter(row => row.project?.id === scope.value);
+  const archiveCount = rows.filter(row=>row.state==='아카이브').length;
+  for (const [id,selected,label] of [['active',!archivedTab,'작업 '+(rows.length-archiveCount)],['archive',archivedTab,'보관함 '+archiveCount],['listMode',mode==='list','목록'],['cardMode',mode==='cards','카드']]) {
+    const button=document.getElementById(id);
+    button.setAttribute('aria-pressed',String(selected));
+    button.textContent=label;
+  }
+  list.className=mode;
+  rows=rows.filter(row=>(row.state==='아카이브')===archivedTab);
+  document.getElementById('listActions').hidden = mode !== 'list' || rows.length === 0;
+  if (!rows.length) list.textContent = archivedTab?'보관한 작업이 없습니다.':'표시할 작업이 없습니다.';
+  for (const row of rows) {
+    const card = document.createElement('details');
+    card.dataset.task = row.id;
+    card.open = expanded.has(row.id);
+    const heading = document.createElement('summary');
+    const badge=document.createElement('span');
+    badge.className='badge';
+    badge.dataset.state=row.state;
+    badge.textContent=row.state;
+    heading.append(badge,document.createTextNode(row.title));
+    card.append(heading);
+    function line(label, value) {
+      if (!value) return;
+      const p = document.createElement('p');
+      p.textContent = label + ' · ' + value;
+      card.append(p);
+    }
+    function link(id, label, container = card) {
+      if (!/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(id)) return;
+      const a = document.createElement('a');
+      a.href = 'codex://threads/' + id;
+      a.textContent = label;
+      a.onclick = event => {
+        event.preventDefault();
+        const key = ++requestId;
+        linkRequests.add(key);
+        send({id:key,method:'ui/open-link',params:{url:a.href}});
+      };
+      container.append(a);
+    }
+    line('최근 결과', row.result);
+    if (archivedTab) line('보관 전 상태',row.previousState);
+    else line('다음 행동',row.next);
+    line('열린 질문',row.question);
+    line('확정한 반환값',row.decision);
+    const roles = new Map();
+    for (const [id, role] of [[row.planning, '기획'], [row.development, '개발']]) {
+      if (id) roles.set(id, [...(roles.get(id) || []), role]);
+    }
+    if (row.owner) {
+      const label = ['담당 채팅', ...(roles.get(row.owner) || [])].join(' · ');
+      link(row.owner, label);
+      roles.delete(row.owner);
+    } else {
+      line('담당 채팅', '미지정');
+    }
+    if (roles.size) {
+      const group = document.createElement('section');
+      const heading = document.createElement('strong');
+      heading.textContent = '관련 대화';
+      group.append(heading);
+      for (const [id, names] of roles) link(id, names.join('·') + ' 채팅', group);
+      card.append(group);
+    }
+    const action=document.createElement('button');
+    action.textContent=archivedTab?'복원':'아카이브';
+    action.disabled=[...pendingActions.values()].includes(row.id);
+    action.onclick=()=>{
+      const id=++requestId;
+      action.disabled=true;
+      endRead();
+      pendingActions.set(id,row.id);
+      send({id,method:'tools/call',params:{name:'set_archive',arguments:{id:row.id,version:row.version,archived:!archivedTab}}});
+    };
+    card.append(action);
+    list.append(card);
+  }
+}
+let requestId = 1;
+let ready = false;
+let readId = null;
+let readTimer;
+const refreshButton = document.querySelector('#refresh');
+const notice = document.querySelector('#notice');
+refreshButton.disabled = true;
+function endRead() {
+  clearTimeout(readTimer);
+  readId = null;
+  refreshButton.disabled = !ready;
+}
+function refresh() {
+  if (!ready || readId !== null || pendingActions.size) return;
+  readId = ++requestId;
+  refreshButton.disabled = true;
+  readTimer = setTimeout(() => {
+    endRead();
+    notice.textContent = '조회 시간이 초과됐습니다. 새로고침으로 다시 시도하세요.';
+  }, 12000);
+  send({id:readId, method:'tools/call', params:{name:'list_inbox',arguments:{}}});
+}
+refreshButton.onclick = refresh;
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+setInterval(() => { if (!document.hidden) refresh(); }, 10000);
+function send(message) { parent.postMessage({jsonrpc:'2.0', ...message}, '*'); }
+window.addEventListener('message', event => {
+  const msg = event.data;
+  if (event.source !== parent || msg?.jsonrpc !== '2.0') return;
+  if (msg.id === 1 && msg.result) {
+    send({method:'ui/notifications/initialized',params:{}});
+    ready = true;
+    refresh();
+  } else if (readId !== null && msg.id === readId) {
+    endRead();
+    const rows = msg.result?.structuredContent?.tasks;
+    if (!Array.isArray(rows) || msg.result?.isError || msg.error) {
+      notice.textContent = '목록을 갱신하지 못했습니다. 새로고침으로 다시 시도하세요.';
+    } else {
+      if (updateScope(msg.result.structuredContent) || JSON.stringify(allRows) !== JSON.stringify(rows)) render(rows);
+      if (notice.textContent.includes('새로고침')) notice.textContent = '';
+    }
+  } else if (pendingActions.has(msg.id)) {
+    pendingActions.delete(msg.id);
+    const result=msg.result;
+    document.querySelector('#notice').textContent=msg.error?'상태 변경에 실패했습니다.':(result?.content?.[0]?.text || '');
+    render(result?.structuredContent?.tasks || allRows);
+  } else if (linkRequests.delete(msg.id) && (msg.error || msg.result?.isError)) {
+    document.querySelector('#notice').textContent = '앱에서 채팅 링크를 열지 못했습니다.';
+  } else if (msg.method === 'ui/notifications/tool-result') {
+    updateScope(msg.params?.structuredContent);
+    render(msg.params?.structuredContent?.tasks);
+  } else if (msg.method === 'ping' && msg.id != null) {
+    send({id:msg.id,result:{}});
+  }
+});
+send({id:1,method:'ui/initialize',params:{appInfo:{name:'workflow-inbox',version:'0.4.6'},appCapabilities:{},protocolVersion:'2026-01-26'}});
+render(INITIAL_ROWS);
+</script></html>

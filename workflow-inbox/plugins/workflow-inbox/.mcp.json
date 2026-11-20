@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "workflow-inbox": {
+      "command": "/bin/sh",
+      "args": [
+        "-c",
+        "exec /opt/homebrew/bin/mise exec -- python3 \"$HOME/codex-workflow-inbox/plugin/server.py\""
+      ]
+    }
+  }
+}

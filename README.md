@@ -33,6 +33,14 @@ cd ~/dotfiles
 7. **Neovim 복원** — lazy.nvim 잠금 파일의 플러그인 revision을 복원하고, Mason 도구와 Treesitter parser 설치가 완료될 때까지 기다린다.
 8. **검증** — 현재 셸과 새 login zsh, Neovim parser와 Mason 포매터를 점검한다.
 
+## Codex 작업함
+
+`./install.sh`가 로컬 마켓과 작업함 플러그인을 등록한다. 설치 후 Codex 채팅의 대화 패널에서 **작업함**을 선택한다. 이미 열린 작업함은 플러그인 업데이트 후 다시 연다.
+
+- 작업 상태, 결정, 검증 이력과 채팅 연결은 각 Mac의 `~/codex-workflow-inbox/result/<작업 ID>/`에 저장한다. 새 Mac은 빈 작업 목록으로 시작하고 재설치는 기존 작업을 보존한다.
+- 작업을 시작하거나 인계할 때 [상태 전환 지침](workflow-inbox/transition-rules.md)을 따른다. 전환 명령은 `~/codex-workflow-inbox`에서 실행한다.
+- 개요와 담당 채팅, 보관·복원, 목록·카드 보기, 자동·수동 새로고침을 제공한다. 설치 상태는 `./bin/verify`로 확인한다.
+
 ## Homebrew 관리 항목
 
 다음은 Homebrew로 관리한다.

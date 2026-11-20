@@ -32,6 +32,7 @@ configure_mise
 install_oh_my_zsh
 configure_zsh
 apply_dotfiles
+install_workflow_inbox
 bootstrap_neovim
 remove_retired_codex_command
 if ((DRY_RUN)); then

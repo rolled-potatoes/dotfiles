@@ -1,0 +1,39 @@
+#!/usr/bin/env python3
+import fcntl, json, os, re, sys
+from pathlib import Path
+
+task, version, state, reason = sys.argv[1:]
+if not re.fullmatch(r'[A-Za-z0-9-]+', task) or not reason.strip():
+    sys.exit('invalid request')
+folder = Path.home() / 'codex-workflow-inbox/result' / task
+folder.mkdir(exist_ok=True)
+edges = {'신규':['계획중'], '계획중':['개발대기'], '개발대기':['계획수정','개발중'], '계획수정':['계획중'], '개발중':['개발완료']}
+def save(name, content):
+    tmp = folder / (name + '.tmp')
+    tmp.write_text(content)
+    os.replace(tmp, folder / name)
+with (folder / '.lock').open('a') as lock:
+    fcntl.flock(lock, fcntl.LOCK_EX)
+    path = folder / 'status.json'
+    data = json.loads(path.read_text()) if path.exists() else dict(id=task, version=0, state='신규', history=[])
+    current = data['state']
+    if state == '아카이브' and current in {*edges, '개발완료'} and current != '신규':
+        data['previousState'] = current
+    elif state == '복원' and current == '아카이브':
+        state = data.pop('previousState')
+    elif state not in edges.get(current, []):
+        sys.exit('invalid transition')
+    if int(version) != data['version']:
+        sys.exit('version or transition conflict')
+    if current == '신규':
+        thread = os.environ.get('CODEX_THREAD_ID', '')
+        if re.fullmatch(r'[0-9a-fA-F-]{36}', thread):
+            mapping = folder.parents[1]/'session-projects'/(thread+'.json')
+            if mapping.is_file():
+                project = json.loads(mapping.read_text())
+                if project and not (folder/'project.json').exists():
+                    save('project.json', json.dumps({k:project[k] for k in ('id','label')}, ensure_ascii=False))
+    data['history'].append(f"{int(version)+1}. {data['state']} → {state} · {reason}")
+    data.update(version=int(version)+1,state=state)
+    save('status.json', json.dumps(data, ensure_ascii=False, indent=2)+'\n')
+    save('history.md', '\n'.join(data['history'])+'\n')
